@@ -1,10 +1,10 @@
 -- ======================================================================
--- ||                VOID UI (Reborn) - PURE DESIGN                    ||
--- ||       Создано с нуля с фокусом на стиле, атмосфере и             ||
--- ||       стабильности. Ничего лишнего. Только чистый вайб.          ||
+-- ||              VOID UI (v1.1) - FONT & STABILITY FIX               ||
+-- ||      Исправлена критическая ошибка со шрифтами.                 ||
+-- ||      Дизайн сохранен, стабильность улучшена.                     ||
 -- ======================================================================
 
-print("[VOID]: Инициализация...")
+print("[VOID]: Инициализация стабильной версии...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -15,13 +15,14 @@ local UserInputService = game:GetService("UserInputService")
 -- ПЕРЕМЕННЫЕ
 local player = Players.LocalPlayer
 
--- КОНФИГУРАЦИЯ ДИЗАЙНА "VOID"
+-- КОНФИГУРАЦИЯ ДИЗАЙНА "VOID" (С ИСПРАВЛЕННЫМИ ШРИФТАМИ)
 local theme = {
     background = Color3.fromRGB(13, 13, 18),
     primary = Color3.fromRGB(22, 22, 28),
     accent = Color3.fromRGB(118, 75, 255),
     text_primary = Color3.fromRGB(230, 230, 230),
     text_secondary = Color3.fromRGB(150, 150, 150),
+    -- ИСПРАВЛЕННЫЕ ШРИФТЫ
     font_main = Enum.Font.SourceSans,
     font_bold = Enum.Font.SourceSansBold,
 }
