@@ -1,11 +1,11 @@
 -- ======================================================================
--- ||                VOID UI (v3.0) - NEON EDITION                     ||
--- ||       - Добавлено неоновое свечение для всех элементов.          ||
--- ||       - Функция "Привязка" (телепорт + сцепка).                  ||
--- ||       - Улучшенная оптимизация и отполированный дизайн.          ||
+-- ||              VOID UI (v4.0) - POLISHED EDITION                   ||
+-- ||       - Полный редизайн с рабочими вкладками.                    ||
+-- ||       - Раздельные и полные списки Игроков и NPC.                ||
+-- ||       - Отполированная функция "Привязка" и визуал.              ||
 -- ======================================================================
 
-print("[VOID v3]: Загрузка Neon Edition...")
+print("[VOID v4]: Загрузка Polished Edition...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -25,6 +25,7 @@ local theme = {
     background = Color3.fromRGB(13, 13, 18),
     primary = Color3.fromRGB(22, 22, 28),
     accent = Color3.fromRGB(118, 75, 255),
+    accent_inactive = Color3.fromRGB(40, 40, 50),
     text_primary = Color3.fromRGB(230, 230, 230),
     text_secondary = Color3.fromRGB(150, 150, 150),
     font_main = Enum.Font.SourceSans,
@@ -38,56 +39,84 @@ local tween_info_slow = TweenInfo.new(0.4, Enum.EasingStyle.Cubic, Enum.EasingDi
 -- ======================================================================
 local VOID_UI = Instance.new("ScreenGui"); VOID_UI.Name = "VOID_UI"; VOID_UI.ResetOnSpawn = false; VOID_UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
-local mainFrame = Instance.new("Frame"); mainFrame.Name = "MainFrame"; mainFrame.AnchorPoint = Vector2.new(0.5, 0.5); mainFrame.Position = UDim2.fromScale(0.5, 0.48); mainFrame.Size = UDim2.new(0, 500, 0, 300); mainFrame.BackgroundColor3 = theme.background; mainFrame.BackgroundTransparency = 1; mainFrame.BorderSizePixel = 0; mainFrame.Visible = false; mainFrame.Parent = VOID_UI
+local mainFrame = Instance.new("Frame"); mainFrame.Name = "MainFrame"; mainFrame.AnchorPoint = Vector2.new(0.5, 0.5); mainFrame.Position = UDim2.fromScale(0.5, 0.48); mainFrame.Size = UDim2.new(0, 550, 0, 350); mainFrame.BackgroundColor3 = theme.background; mainFrame.BackgroundTransparency = 1; mainFrame.BorderSizePixel = 0; mainFrame.Visible = false; mainFrame.Parent = VOID_UI
 local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 6)
 local border = Instance.new("UIStroke", mainFrame); border.Color = theme.primary; border.Thickness = 2
 
 -- ЖИВОЙ ФОН
 local gridBg = Instance.new("Frame", mainFrame); gridBg.Name = "GridBackground"; gridBg.Size = UDim2.fromScale(1, 1); gridBg.BackgroundTransparency = 1; gridBg.ClipsDescendants = true; gridBg.ZIndex = 0
 local gridLayout = Instance.new("UIGridLayout", gridBg); gridLayout.CellSize = UDim2.fromOffset(15, 15); gridLayout.FillDirection = Enum.FillDirection.Horizontal
-local gridCells = {}; for i = 1, 800 do local p = Instance.new("Frame", gridBg); p.BackgroundColor3 = theme.primary; p.BorderSizePixel = 0; p.Transparency = 1; table.insert(gridCells, p) end
+local gridCells = {}; for i = 1, 900 do local p = Instance.new("Frame", gridBg); p.BackgroundColor3 = theme.primary; p.BorderSizePixel = 0; p.Transparency = 1; table.insert(gridCells, p) end
 
 -- НАВИГАЦИЯ
-local navBar = Instance.new("Frame", mainFrame); navBar.Name = "NavBar"; navBar.Size = UDim2.new(0, 120, 1, 0); navBar.BackgroundColor3 = theme.primary; navBar.ZIndex = 1
-local navLayout = Instance.new("UIListLayout", navBar); navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; navLayout.SortOrder = Enum.SortOrder.LayoutOrder; navLayout.Padding = UDim.new(0, 10)
-local navTitle = Instance.new("TextLabel", navBar); navTitle.Name = "Title"; navTitle.Size = UDim2.new(1, 0, 0, 50); navTitle.BackgroundTransparency = 1; navTitle.Text = "V O I D"; navTitle.Font = theme.font_bold; navTitle.TextColor3 = theme.text_primary; navTitle.TextSize = 20; navTitle.LayoutOrder = 1
+local navBar = Instance.new("Frame", mainFrame); navBar.Name = "NavBar"; navBar.Size = UDim2.new(0, 130, 1, 0); navBar.BackgroundColor3 = theme.primary; navBar.ZIndex = 1
+local navLayout = Instance.new("UIListLayout", navBar); navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; navLayout.SortOrder = Enum.SortOrder.LayoutOrder; navLayout.Padding = UDim.new(0, 10); navLayout.Margin = UDim.new(0, 20)
+local navTitle = Instance.new("TextLabel", navBar); navTitle.Name = "Title"; navTitle.Size = UDim2.new(1, 0, 0, 50); navTitle.BackgroundTransparency = 1; navTitle.Text = "V O I D"; navTitle.Font = theme.font_bold; navTitle.TextColor3 = theme.text_primary; navTitle.TextSize = 22; navTitle.LayoutOrder = 1
 
 -- КОНТЕЙНЕР ДЛЯ КОНТЕНТА
-local contentFrame = Instance.new("Frame", mainFrame); contentFrame.Name = "Content"; contentFrame.Position = UDim2.fromOffset(120, 0); contentFrame.Size = UDim2.new(1, -120, 1, 0); contentFrame.BackgroundTransparency = 1
-
--- СТРАНИЦА "ПРИВЯЗКА"
-local tetherPage = Instance.new("Frame", contentFrame); tetherPage.Name = "TetherPage"; tetherPage.Size = UDim2.fromScale(1, 1); tetherPage.BackgroundTransparency = 1
-
-local targetListFrame = Instance.new("ScrollingFrame", tetherPage); targetListFrame.Name = "TargetList"; targetListFrame.Size = UDim2.new(0.5, -10, 1, -20); targetListFrame.Position = UDim2.new(1, -10, 0.5, 0); targetListFrame.AnchorPoint = Vector2.new(1, 0.5); targetListFrame.BackgroundColor3 = theme.primary; targetListFrame.BorderSizePixel = 0; targetListFrame.ScrollBarImageColor3 = theme.accent
-local targetListLayout = Instance.new("UIListLayout", targetListFrame); targetListLayout.SortOrder = Enum.SortOrder.LayoutOrder; targetListLayout.Padding = UDim.new(0, 2)
-
-local controlsFrame = Instance.new("Frame", tetherPage); controlsFrame.Name = "Controls"; controlsFrame.Size = UDim2.new(0.5, -10, 1, -20); controlsFrame.Position = UDim2.new(0, 10, 0.5, 0); controlsFrame.AnchorPoint = Vector2.new(0, 0.5); controlsFrame.BackgroundTransparency = 1
-local controlsLayout = Instance.new("UIListLayout", controlsFrame); controlsLayout.Padding = UDim.new(0, 15)
-
--- ЭЛЕМЕНТЫ УПРАВЛЕНИЯ "ПРИВЯЗКОЙ"
-local selectedTargetLabel = Instance.new("TextLabel", controlsFrame); selectedTargetLabel.Name = "SelectedTarget"; selectedTargetLabel.Size = UDim2.new(1, 0, 0, 20); selectedTargetLabel.BackgroundTransparency = 1; selectedTargetLabel.Font = theme.font_main; selectedTargetLabel.TextColor3 = theme.text_secondary; selectedTargetLabel.Text = "Цель: не выбрана"; selectedTargetLabel.TextSize = 14; selectedTargetLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local distanceLabel = Instance.new("TextLabel", controlsFrame); distanceLabel.Name = "DistanceLabel"; distanceLabel.Size = UDim2.new(1, 0, 0, 20); distanceLabel.BackgroundTransparency = 1; distanceLabel.Font = theme.font_main; distanceLabel.TextColor3 = theme.text_secondary; distanceLabel.Text = "Смещение: " .. tetherDistance .. "m"; distanceLabel.TextSize = 14; distanceLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local distanceSlider = Instance.new("Frame", controlsFrame); distanceSlider.Name = "Slider"; distanceSlider.Size = UDim2.new(1, 0, 0, 10); distanceSlider.BackgroundColor3 = theme.primary; local sliderCorner = Instance.new("UICorner", distanceSlider); sliderCorner.CornerRadius = UDim.new(1,0)
-local sliderFill = Instance.new("Frame", distanceSlider); sliderFill.Name = "Fill"; sliderFill.Size = UDim2.fromScale(0.2, 1); sliderFill.BackgroundColor3 = theme.accent; local sliderCornerFill = Instance.new("UICorner", sliderFill); sliderCornerFill.CornerRadius = UDim.new(1,0)
+local contentFrame = Instance.new("Frame", mainFrame); contentFrame.Name = "Content"; contentFrame.Position = UDim2.fromOffset(130, 0); contentFrame.Size = UDim2.new(1, -130, 1, 0); contentFrame.BackgroundTransparency = 1
 
 -- ======================================================================
--- ||                 ЛОГИКА И ФУНКЦИОНАЛЬНОСТЬ                        ||
+-- ||                   ЛОГИКА И ЭЛЕМЕНТЫ СТРАНИЦ                      ||
 -- ======================================================================
 
 -- Функция НЕОНОВОГО СВЕЧЕНИЯ
 local function applyNeonEffect(guiObject)
     local neon = Instance.new("UIStroke", guiObject)
-    neon.Color = theme.accent
-    neon.Thickness = 1.5
-    neon.Transparency = 1
-    
+    neon.Color = theme.accent; neon.Thickness = 1.5; neon.Transparency = 1; neon.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     guiObject.MouseEnter:Connect(function() TweenService:Create(neon, tween_info_fast, {Transparency = 0.5}):Play() end)
     guiObject.MouseLeave:Connect(function() TweenService:Create(neon, tween_info_fast, {Transparency = 1}):Play() end)
 end
 
--- ПЕРЕКЛЮЧАТЕЛЬ
+-- Функция создания страницы
+local function createPage(name)
+    local page = Instance.new("Frame", contentFrame); page.Name = name .. "Page"; page.Size = UDim2.fromScale(1, 1); page.BackgroundTransparency = 1; page.Visible = false
+    
+    local listFrame = Instance.new("ScrollingFrame", page); listFrame.Name = "TargetList"; listFrame.Size = UDim2.new(0.5, -15, 1, -20); listFrame.Position = UDim2.new(1, -10, 0.5, 0); listFrame.AnchorPoint = Vector2.new(1, 0.5); listFrame.BackgroundColor3 = theme.primary; listFrame.BorderSizePixel = 0; listFrame.ScrollBarImageColor3 = theme.accent
+    local listLayout = Instance.new("UIListLayout", listFrame); listLayout.SortOrder = Enum.SortOrder.LayoutOrder; listLayout.Padding = UDim.new(0, 2)
+    
+    local controlsFrame = Instance.new("Frame", page); controlsFrame.Name = "Controls"; controlsFrame.Size = UDim2.new(0.5, -15, 1, -20); controlsFrame.Position = UDim2.new(0, 10, 0.5, 0); controlsFrame.AnchorPoint = Vector2.new(0, 0.5); controlsFrame.BackgroundTransparency = 1
+    local controlsLayout = Instance.new("UIListLayout", controlsFrame); controlsLayout.Padding = UDim.new(0, 15)
+
+    return page, listFrame, controlsFrame
+end
+
+local playerPage, playerList, playerControls = createPage("Player")
+local npcPage, npcList, npcControls = createPage("NPC")
+playerPage.Visible = true -- Стартовая страница
+
+-- Функция создания вкладки
+local function createTab(name, pageToShow)
+    local btn = Instance.new("TextButton", navBar); btn.Name = name .. "Tab"; btn.Size = UDim2.new(1, -20, 0, 35); btn.BackgroundColor3 = theme.primary; btn.Font = theme.font_bold; btn.TextColor3 = theme.text_secondary; btn.Text = name; btn.TextSize = 16; btn.LayoutOrder = 2
+    local corner_btn = Instance.new("UICorner", btn); corner_btn.CornerRadius = UDim.new(0, 4)
+    applyNeonEffect(btn)
+    
+    btn.MouseButton1Click:Connect(function()
+        for _, child in ipairs(contentFrame:GetChildren()) do child.Visible = false end
+        for _, tab in ipairs(navBar:GetChildren()) do if tab:IsA("TextButton") then tab.TextColor3 = theme.text_secondary end end
+        pageToShow.Visible = true
+        btn.TextColor3 = theme.text_primary
+    end)
+    return btn
+end
+
+local playerTab = createTab("Игроки", playerPage)
+local npcTab = createTab("NPC", npcPage)
+playerTab.TextColor3 = theme.text_primary -- Активная вкладка по умолчанию
+
+-- Универсальные контролы
+local selectedTargetLabel = Instance.new("TextLabel", playerControls); selectedTargetLabel.Name = "SelectedTarget"; selectedTargetLabel.Size = UDim2.new(1, 0, 0, 20); selectedTargetLabel.BackgroundTransparency = 1; selectedTargetLabel.Font = theme.font_main; selectedTargetLabel.TextColor3 = theme.text_secondary; selectedTargetLabel.Text = "Цель: не выбрана"; selectedTargetLabel.TextSize = 14; selectedTargetLabel.TextXAlignment = Enum.TextXAlignment.Left
+local distanceLabel = Instance.new("TextLabel", playerControls); distanceLabel.Name = "DistanceLabel"; distanceLabel.Size = UDim2.new(1, 0, 0, 20); distanceLabel.BackgroundTransparency = 1; distanceLabel.Font = theme.font_main; distanceLabel.TextColor3 = theme.text_secondary; distanceLabel.Text = "Смещение: " .. tetherDistance .. "m"; distanceLabel.TextSize = 14; distanceLabel.TextXAlignment = Enum.TextXAlignment.Left
+local distanceSlider = Instance.new("Frame", playerControls); distanceSlider.Name = "Slider"; distanceSlider.Size = UDim2.new(1, 0, 0, 10); distanceSlider.BackgroundColor3 = theme.primary; local sc = Instance.new("UICorner", distanceSlider); sc.CornerRadius = UDim.new(1,0)
+local sliderFill = Instance.new("Frame", distanceSlider); sliderFill.Name = "Fill"; sliderFill.Size = UDim2.fromScale(0.2, 1); sliderFill.BackgroundColor3 = theme.accent; local scf = Instance.new("UICorner", sliderFill); scf.CornerRadius = UDim.new(1,0)
+
+-- Дублируем контролы для NPC страницы
+selectedTargetLabel:Clone().Parent = npcControls; distanceLabel:Clone().Parent = npcControls; distanceSlider:Clone().Parent = npcControls
+
+-- ======================================================================
+-- ||                 ЛОГИКА И ФУНКЦИОНАЛЬНОСТЬ                        ||
+-- ======================================================================
+
 local function createToggle(parent, title)
     local frame = Instance.new("Frame", parent); frame.Size = UDim2.new(1, 0, 0, 50); frame.BackgroundTransparency = 1
     local label = Instance.new("TextLabel", frame); label.Name = "Label"; label.Size = UDim2.new(0.7, 0, 1, 0); label.BackgroundTransparency = 1; label.Font = theme.font_main; label.TextColor3 = theme.text_secondary; label.TextXAlignment = Enum.TextXAlignment.Left; label.Text = title; label.TextSize = 16
@@ -102,27 +131,55 @@ local function createToggle(parent, title)
     end)
     return label
 end
-createToggle(controlsFrame, "Активировать Привязку")
+createToggle(playerControls, "Активировать Привязку")
+createToggle(npcControls, "Активировать Привязку")
 
--- ЛОГИКА СЛАЙДЕРА
 local function updateSlider(input)
-    local pos = input.Position.X - distanceSlider.AbsolutePosition.X; local percent = math.clamp(pos / distanceSlider.AbsoluteSize.X, 0, 1)
-    sliderFill.Size = UDim2.fromScale(percent, 1); tetherDistance = math.floor(2 + percent * 48) -- от 2 до 50
-    distanceLabel.Text = "Смещение: " .. tetherDistance .. "m"
+    local slider = input.Parent
+    local fill = slider:FindFirstChild("Fill")
+    local controls = slider.Parent
+    local label = controls:FindFirstChild("DistanceLabel")
+    
+    local pos = input.Position.X - slider.AbsolutePosition.X; local percent = math.clamp(pos / slider.AbsoluteSize.X, 0, 1)
+    fill.Size = UDim2.fromScale(percent, 1); tetherDistance = math.floor(2 + percent * 48) -- от 2 до 50
+    label.Text = "Смещение: " .. tetherDistance .. "m"
 end
-distanceSlider.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then updateSlider(input) end end)
-distanceSlider.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then updateSlider(input) end end)
+for _, page in ipairs(contentFrame:GetChildren()) do
+    local slider = page.Controls.Slider
+    slider.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then updateSlider(input) end end)
+    slider.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then updateSlider(input) end end)
+end
 
--- ОБНОВЛЕНИЕ СПИСКА ЦЕЛЕЙ
 local function updateTargetList()
-    for _, btn in ipairs(targetListFrame:GetChildren()) do if btn:IsA("TextButton") then btn:Destroy() end end
-    local function addTarget(target)
-        local btn = Instance.new("TextButton", targetListFrame); btn.Name = target.Name; btn.Size = UDim2.new(1, 0, 0, 25); btn.BackgroundColor3 = theme.primary; btn.Font = theme.font_main; btn.TextColor3 = theme.text_secondary; btn.Text = target.Name; btn.TextSize = 14
+    for _, btn in ipairs(playerList:GetChildren()) do if btn:IsA("TextButton") then btn:Destroy() end end
+    for _, btn in ipairs(npcList:GetChildren()) do if btn:IsA("TextButton") then btn:Destroy() end end
+    
+    local function addTarget(target, listFrame)
+        local btn = Instance.new("TextButton", listFrame); btn.Name = target.Name; btn.Size = UDim2.new(1, 0, 0, 25); btn.BackgroundColor3 = theme.primary; btn.Font = theme.font_main; btn.TextColor3 = theme.text_secondary; btn.Text = target.Name; btn.TextSize = 14
         applyNeonEffect(btn)
-        btn.MouseButton1Click:Connect(function() currentTarget = target; selectedTargetLabel.Text = "Цель: " .. target.Name; selectedTargetLabel.TextColor = theme.accent end)
+        btn.MouseButton1Click:Connect(function() 
+            currentTarget = target
+            for _, page in ipairs(contentFrame:GetChildren()) do
+                page.Controls.SelectedTarget.Text = "Цель: " .. target.Name
+                page.Controls.SelectedTarget.TextColor = theme.accent
+            end
+        end)
     end
-    for _, p in ipairs(Players:GetPlayers()) do if p ~= player and p.Character then addTarget(p.Character) end end
-    for _, model in ipairs(Workspace:GetChildren()) do if model:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(model) then addTarget(model) end end
+    
+    -- ГЛУБОКОЕ СКАНИРОВАНИЕ
+    for _, descendant in ipairs(Workspace:GetDescendants()) do
+        if descendant:IsA("Humanoid") then
+            local model = descendant.Parent
+            if model and model:FindFirstChild("HumanoidRootPart") then
+                local p = Players:GetPlayerFromCharacter(model)
+                if p and p ~= player then
+                    addTarget(model, playerList)
+                elseif not p then
+                    addTarget(model, npcList)
+                end
+            end
+        end
+    end
 end
 
 -- ======================================================================
@@ -134,10 +191,9 @@ local function tetherLogic()
     local char = player.Character
     if not isTetherActive or not currentTarget or not currentTarget.Parent or not char then return end
     local targetHumanoid = currentTarget:FindFirstChildOfClass("Humanoid")
-    if not targetHumanoid or targetHumanoid.Health <= 0 then currentTarget = nil; selectedTargetLabel.Text = "Цель: не выбрана"; selectedTargetLabel.TextColor = theme.text_secondary; return end
+    if not targetHumanoid or targetHumanoid.Health <= 0 then currentTarget = nil; for _,p in ipairs(contentFrame:GetChildren())do p.Controls.SelectedTarget.Text="Цель: не выбрана"; p.Controls.SelectedTarget.TextColor=theme.text_secondary end; return end
     
-    local root = char:FindFirstChild("HumanoidRootPart")
-    local targetRoot = currentTarget:FindFirstChild("HumanoidRootPart")
+    local root = char:FindFirstChild("HumanoidRootPart"); local targetRoot = currentTarget:FindFirstChild("HumanoidRootPart")
     if not root or not targetRoot then return end
     
     char:SetPrimaryPartCFrame(targetRoot.CFrame * CFrame.new(tetherDistance, 3, 0))
@@ -165,6 +221,7 @@ makeDraggable(mainFrame)
 UserInputService.InputBegan:Connect(function(input, gpe) if gpe then return end; if input.KeyCode == Enum.KeyCode.Insert then setUIVisible(not mainFrame.Visible or mainFrame.BackgroundTransparency == 1) end end)
 
 VOID_UI.Parent = player:WaitForChild("PlayerGui"); tetherConnection = RunService.Heartbeat:Connect(tetherLogic)
-print("[VOID v3]: Neon Edition активна. Нажмите [Insert], чтобы показать или скрыть меню.")
+print("[VOID v4]: Polished Edition активна. Нажмите [Insert], чтобы показать или скрыть меню.")
 task.wait(0.5); setUIVisible(true)
+
 
