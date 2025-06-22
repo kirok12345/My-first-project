@@ -1,10 +1,10 @@
 -- ======================================================================
--- ||                PHANTOM UI (v6.0) - Бессмертие                    ||
+-- ||           PHANTOM UI (v6.1) - Стабилизированная версия           ||
+-- ||    Переписано для максимальной надежности и устранения ошибок.   ||
 -- ||       Элегантный интерфейс с самой мощной функцией.              ||
--- ||       Создано с фокусом на дизайне и производительности.          ||
 -- ======================================================================
 
-print("[PHANTOM UI]: Загрузка интерфейса...")
+print("[PHANTOM UI]: Загрузка стабилизированной системы...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -45,6 +45,7 @@ PhantomUI.Name = "PhantomUI"
 PhantomUI.ResetOnSpawn = false
 PhantomUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
+-- ОСНОВНОЕ ОКНО
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -52,125 +53,69 @@ mainFrame.Position = UDim2.fromScale(0.5, 0.5)
 mainFrame.Size = UDim2.new(0, 450, 0, 250)
 mainFrame.BackgroundColor3 = theme.background
 mainFrame.BorderSizePixel = 0
-mainFrame.Visible = true -- Изначально видимо для удобства
+mainFrame.Visible = true
 mainFrame.Parent = PhantomUI
 
+-- ЭЛЕМЕНТЫ ДИЗАЙНА
 local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 8)
 local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"
-shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-shadow.Position = UDim2.fromScale(0.5, 0.5)
-shadow.Size = UDim2.fromScale(1, 1)
-shadow.Image = "rbxassetid://10423922669" -- Soft shadow image
-shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.6
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(20, 20, 280, 280)
-shadow.ZIndex = -1
-shadow.Parent = mainFrame
+shadow.Name = "Shadow"; shadow.AnchorPoint = Vector2.new(0.5, 0.5); shadow.Position = UDim2.fromScale(0.5, 0.5)
+shadow.Size = UDim2.fromScale(1, 1); shadow.Image = "rbxassetid://10423922669"; shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.6; shadow.ScaleType = Enum.ScaleType.Slice; shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+shadow.ZIndex = -1; shadow.Parent = mainFrame
 
--- НАВИГАЦИЯ
+-- НАВИГАЦИОННАЯ ПАНЕЛЬ СЛЕВА
 local navBar = Instance.new("Frame")
-navBar.Name = "NavBar"
-navBar.Size = UDim2.new(0, 120, 1, 0)
-navBar.BackgroundColor3 = theme.primary
-navBar.BorderSizePixel = 0
-navBar.Parent = mainFrame
+navBar.Name = "NavBar"; navBar.Size = UDim2.new(0, 120, 1, 0); navBar.BackgroundColor3 = theme.primary
+navBar.BorderSizePixel = 0; navBar.Parent = mainFrame
 local corner_nav = Instance.new("UICorner", navBar); corner_nav.CornerRadius = UDim.new(0, 8)
 
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 0, 50)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "PHANTOM"
-titleLabel.Font = theme.font_title
-titleLabel.TextColor3 = theme.text_primary
-titleLabel.TextSize = 20
-titleLabel.Parent = navBar
+titleLabel.Name = "Title"; titleLabel.Size = UDim2.new(1, 0, 0, 50); titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "PHANTOM"; titleLabel.Font = theme.font_title; titleLabel.TextColor3 = theme.text_primary
+titleLabel.TextSize = 20; titleLabel.Parent = navBar
 
--- КНОПКА ВКЛАДКИ
+-- КНОПКА ВКЛАДКИ "PLAYER"
 local playerTabButton = Instance.new("TextButton")
-playerTabButton.Name = "PlayerTabButton"
-playerTabButton.Size = UDim2.new(1, -16, 0, 35)
-playerTabButton.Position = UDim2.new(0.5, 0, 0, 60)
-playerTabButton.AnchorPoint = Vector2.new(0.5, 0)
-playerTabButton.BackgroundColor3 = theme.accent
-playerTabButton.Text = "  Player"
-playerTabButton.Font = theme.font_main
-playerTabButton.TextColor3 = theme.text_primary
-playerTabButton.TextXAlignment = Enum.TextXAlignment.Left
-playerTabButton.TextSize = 16
-playerTabButton.AutoButtonColor = false
-playerTabButton.Parent = navBar
+playerTabButton.Name = "PlayerTabButton"; playerTabButton.Size = UDim2.new(1, -16, 0, 35); playerTabButton.Position = UDim2.new(0.5, 0, 0, 60)
+playerTabButton.AnchorPoint = Vector2.new(0.5, 0); playerTabButton.BackgroundColor3 = theme.accent; playerTabButton.Text = "  Player"
+playerTabButton.Font = theme.font_main; playerTabButton.TextColor3 = theme.text_primary; playerTabButton.TextXAlignment = Enum.TextXAlignment.Left
+playerTabButton.TextSize = 16; playerTabButton.AutoButtonColor = false; playerTabButton.Parent = navBar
 local corner_tab = Instance.new("UICorner", playerTabButton); corner_tab.CornerRadius = UDim.new(0, 6)
 
--- КОНТЕНТ
+-- КОНТЕНТ СПРАВА
 local contentFrame = Instance.new("Frame")
-contentFrame.Name = "ContentFrame"
-contentFrame.Position = UDim2.fromOffset(120, 0)
-contentFrame.Size = UDim2.new(1, -120, 1, 0)
-contentFrame.BackgroundColor3 = theme.background
-contentFrame.BorderSizePixel = 0
-contentFrame.Parent = mainFrame
+contentFrame.Name = "ContentFrame"; contentFrame.Position = UDim2.fromOffset(120, 0); contentFrame.Size = UDim2.new(1, -120, 1, 0)
+contentFrame.BackgroundColor3 = theme.background; contentFrame.BorderSizePixel = 0; contentFrame.Parent = mainFrame
 
--- СТРАНИЦА ИГРОКА
+-- СТРАНИЦА "PLAYER"
 local playerPage = Instance.new("Frame")
-playerPage.Name = "PlayerPage"
-playerPage.Size = UDim2.fromScale(1, 1)
-playerPage.BackgroundTransparency = 1
-playerPage.Parent = contentFrame
+playerPage.Name = "PlayerPage"; playerPage.Size = UDim2.fromScale(1, 1); playerPage.BackgroundTransparency = 1; playerPage.Parent = contentFrame
 
+-- ФУНКЦИЯ СОЗДАНИЯ ПЕРЕКЛЮЧАТЕЛЯ
 local function createToggle(parent, title, position)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -40, 0, 50)
-    frame.Position = position
-    frame.AnchorPoint = Vector2.new(0.5, 0)
-    frame.BackgroundTransparency = 1
-    frame.Parent = parent
+    frame.Size = UDim2.new(1, -40, 0, 50); frame.Position = position; frame.AnchorPoint = Vector2.new(0.5, 0); frame.BackgroundTransparency = 1; frame.Parent = parent
+    
+    local label = Instance.new("TextLabel"); label.Name = "Label"; label.Size = UDim2.new(0.5, 0, 1, 0); label.BackgroundTransparency = 1
+    label.Font = theme.font_main; label.TextColor3 = theme.text_primary; label.TextXAlignment = Enum.TextXAlignment.Left; label.Text = title; label.TextSize = 16; label.Parent = frame
 
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Size = UDim2.new(0.5, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Font = theme.font_main
-    label.TextColor3 = theme.text_primary
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Text = title
-    label.TextSize = 16
-    label.Parent = frame
+    local toggleSwitch = Instance.new("TextButton"); toggleSwitch.Name = "Toggle"; toggleSwitch.Size = UDim2.new(0, 60, 0, 30); toggleSwitch.Position = UDim2.new(1, 0, 0.5, 0)
+    toggleSwitch.AnchorPoint = Vector2.new(1, 0.5); toggleSwitch.Text = ""; toggleSwitch.AutoButtonColor = false; toggleSwitch.Parent = frame
 
-    local toggleSwitch = Instance.new("TextButton")
-    toggleSwitch.Name = "Toggle"
-    toggleSwitch.Size = UDim2.new(0, 60, 0, 30)
-    toggleSwitch.Position = UDim2.new(1, 0, 0.5, 0)
-    toggleSwitch.AnchorPoint = Vector2.new(1, 0.5)
-    toggleSwitch.Text = ""
-    toggleSwitch.AutoButtonColor = false
-    toggleSwitch.Parent = frame
-
-    local bg = Instance.new("Frame", toggleSwitch)
-    bg.Name = "Background"
-    bg.Size = UDim2.fromScale(1, 1)
-    bg.BackgroundColor3 = theme.accent_off
+    local bg = Instance.new("Frame", toggleSwitch); bg.Name = "Background"; bg.Size = UDim2.fromScale(1, 1); bg.BackgroundColor3 = theme.accent_off
     local corner_bg = Instance.new("UICorner", bg); corner_bg.CornerRadius = UDim.new(1, 0)
 
-    local knob = Instance.new("Frame", bg)
-    knob.Name = "Knob"
-    knob.Size = UDim2.new(0, 24, 0, 24)
-    knob.Position = UDim2.fromScale(0, 0.5)
-    knob.AnchorPoint = Vector2.new(0, 0.5)
-    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    local knob = Instance.new("Frame", bg); knob.Name = "Knob"; knob.Size = UDim2.new(0, 24, 0, 24); knob.Position = UDim2.fromScale(0, 0.5)
+    knob.AnchorPoint = Vector2.new(0, 0.5); knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     local corner_knob = Instance.new("UICorner", knob); corner_knob.CornerRadius = UDim.new(1, 0)
     
     local function setToggleState(state, no_anim)
         local target_pos = state and UDim2.fromScale(1, 0.5) or UDim2.fromScale(0, 0.5)
         local target_anchor = state and Vector2.new(1, 0.5) or Vector2.new(0, 0.5)
         local target_color = state and theme.accent or theme.accent_off
-
         if no_anim then
-            knob.Position = target_pos
-            knob.AnchorPoint = target_anchor
-            bg.BackgroundColor3 = target_color
+            knob.Position, knob.AnchorPoint, bg.BackgroundColor3 = target_pos, target_anchor, target_color
         else
             TweenService:Create(knob, tween_info, {Position = target_pos, AnchorPoint = target_anchor}):Play()
             TweenService:Create(bg, tween_info, {BackgroundColor3 = target_color}):Play()
@@ -203,11 +148,7 @@ local function toggleImmortality()
     if not humanoid then return end
     isImmortal = not isImmortal
     setImmortalityVisuals(isImmortal)
-    if isImmortal then
-        applyGodProtocols()
-    else
-        removeGodProtocols()
-    end
+    if isImmortal then applyGodProtocols() else removeGodProtocols() end
 end
 
 -- ======================================================================
@@ -227,8 +168,8 @@ end)
 -- ======================================================================
 local function onCharacterAdded(newChar)
     print("[PHANTOM UI]: Новый персонаж. Восстанавливаю протоколы.")
-    character = newChar; humanoid = newChar:WaitForChild("Humanoid"); rootPart = newChar:WaitForChild("HumanoidRootPart")
-    defaultWalkSpeed = humanoid.WalkSpeed; defaultMaxHealth = humanoid.MaxHealth
+    character, humanoid, rootPart = newChar, newChar:WaitForChild("Humanoid"), newChar:WaitForChild("HumanoidRootPart")
+    defaultWalkSpeed, defaultMaxHealth = humanoid.WalkSpeed, humanoid.MaxHealth
     if isImmortal then applyGodProtocols() end
     humanoid.Died:Connect(function() print("[PHANTOM UI]: Персонаж уничтожен.") removeGodProtocols() end)
 end
@@ -236,23 +177,30 @@ end
 -- ======================================================================
 -- ||                       ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ                      ||
 -- ======================================================================
-local function makeDraggable(gui,handle) local d,s,p=false,nil,nil;handle.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then d,s,p=true,i.Position,gui.Position;i.Changed:Connect(function()if i.UserInputState==Enum.UserInputState.End then d=false end end)end end);UserInputService.InputChanged:Connect(function(i)if(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)and d then local t=i.Position-s;gui.Position=UDim2.new(p.X.Scale,p.X.Offset+t.X,p.Y.Scale,p.Y.Offset+t.Y)end end)end
-makeDraggable(mainFrame, mainFrame) -- Можно таскать за всю область
+local function makeDraggable(guiObject, dragHandle)
+    local dragging, dragStart, startPosition = false, nil, nil
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging, dragStart, startPosition = true, input.Position, guiObject.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
+        end
+    end)
+end
 
+makeDraggable(mainFrame, mainFrame)
 immortalityToggle.MouseButton1Click:Connect(toggleImmortality)
-
--- Горячая клавиша для переключения
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.G then
-        toggleImmortality()
-    end
-end)
-
+UserInputService.InputBegan:Connect(function(input, gpe) if gpe then return end; if input.KeyCode == Enum.KeyCode.G then toggleImmortality() end end)
 player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then onCharacterAdded(player.Character) end
 
-setImmortalityVisuals(isImmortal, true) -- Устанавливаем начальное состояние без анимации
+-- Устанавливаем всё в начальное состояние
+setImmortalityVisuals(isImmortal, true)
 PhantomUI.Parent = player:WaitForChild("PlayerGui")
 print("[PHANTOM UI]: Система активна. Клавиша [G] для переключения.")
 
