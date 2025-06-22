@@ -1,207 +1,175 @@
 -- ======================================================================
--- ||           PHANTOM UI (v6.1) - Стабилизированная версия           ||
--- ||    Переписано для максимальной надежности и устранения ошибок.   ||
--- ||       Элегантный интерфейс с самой мощной функцией.              ||
+-- ||           PROJECT CHIMERA (FINAL) - THE ULTIMATUM                ||
+-- ||       Это не скрипт. Это аномалия. Конец пути.                   ||
+-- ||       Абсолютный максимум технологии клиентского обхода.         ||
 -- ======================================================================
 
-print("[PHANTOM UI]: Загрузка стабилизированной системы...")
+print("[CHIMERA]: Инициализация аномальной системы... ЗАГРУЗКА ЯДРА.")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
--- ПЕРЕМЕННЫЕ ИГРОКА И ПЕРСОНАЖА
+-- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
 local player = Players.LocalPlayer
-local character, humanoid, rootPart
-local defaultWalkSpeed, defaultMaxHealth = 16, 100
+local character, humanoid
+local isGodProtocolActive = false
+local originalNamecall
 
--- СОСТОЯНИЕ (сохраняется после смерти)
-local isImmortal = false
-
--- ОБЪЕКТЫ ДЛЯ БЕССМЕРТИЯ
-local godForceField, healthChangedConnection
-
--- КОНФИГУРАЦИЯ ИНТЕРФЕЙСА
+-- ИНТЕРФЕЙС "ХИМЕРЫ"
 local theme = {
-    background = Color3.fromRGB(20, 21, 24),
-    primary = Color3.fromRGB(30, 31, 34),
-    secondary = Color3.fromRGB(43, 44, 48),
-    accent = Color3.fromRGB(90, 104, 236),
-    accent_off = Color3.fromRGB(70, 70, 70),
-    text_primary = Color3.fromRGB(240, 240, 240),
-    text_secondary = Color3.fromRGB(160, 160, 160),
-    font_main = Enum.Font.GothamSemibold,
-    font_title = Enum.Font.GothamBlack,
+    background = Color3.fromRGB(10, 10, 10),
+    primary = Color3.fromRGB(20, 20, 20),
+    accent = Color3.fromRGB(255, 10, 80),
+    text_primary = Color3.fromRGB(0, 255, 130),
+    text_secondary = Color3.fromRGB(100, 100, 100),
+    font_main = Enum.Font.Code,
 }
-local tween_info = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local ChimeraUI = Instance.new("ScreenGui"); ChimeraUI.Name = "ChimeraUI"; ChimeraUI.ResetOnSpawn = false; ChimeraUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+local mainFrame = Instance.new("Frame"); mainFrame.Name = "MainFrame"; mainFrame.AnchorPoint = Vector2.new(0.5, 0.5); mainFrame.Position = UDim2.fromScale(0.5, 0.5); mainFrame.Size = UDim2.new(0, 600, 0, 400); mainFrame.BackgroundColor3 = theme.background; mainFrame.BorderSizePixel = 0; mainFrame.Parent = ChimeraUI
+local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 2)
+local border = Instance.new("UIStroke", mainFrame); border.Color = theme.primary; border.Thickness = 2
 
 -- ======================================================================
--- ||                      СОЗДАНИЕ ИНТЕРФЕЙСА                         ||
+-- ||                        UI КОМПОНЕНТЫ                              ||
 -- ======================================================================
-local PhantomUI = Instance.new("ScreenGui")
-PhantomUI.Name = "PhantomUI"
-PhantomUI.ResetOnSpawn = false
-PhantomUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
+local header = Instance.new("TextLabel", mainFrame); header.Name = "Header"; header.Size = UDim2.new(1, 0, 0, 30); header.BackgroundTransparency = 1; header.Text = "P R O J E C T  C H I M E R A // Anomaly Intervention System"; header.Font = theme.font_main; header.TextColor3 = theme.text_secondary; header.TextSize = 14
 
--- ОСНОВНОЕ ОКНО
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.Position = UDim2.fromScale(0.5, 0.5)
-mainFrame.Size = UDim2.new(0, 450, 0, 250)
-mainFrame.BackgroundColor3 = theme.background
-mainFrame.BorderSizePixel = 0
-mainFrame.Visible = true
-mainFrame.Parent = PhantomUI
+local logFrame = Instance.new("ScrollingFrame", mainFrame); logFrame.Name = "LogFrame"; logFrame.Position = UDim2.new(0.5, 0, 0.55, 0); logFrame.AnchorPoint = Vector2.new(0.5, 0.5); logFrame.Size = UDim2.new(1, -20, 1, -110); logFrame.BackgroundColor3 = theme.primary; logFrame.BorderSizePixel = 0; logFrame.CanvasSize = UDim2.new(0, 0, 0, 0); logFrame.ScrollBarImageColor3 = theme.accent
+local listLayout = Instance.new("UIListLayout", logFrame); listLayout.SortOrder = Enum.SortOrder.LayoutOrder; listLayout.Padding = UDim.new(0, 2)
 
--- ЭЛЕМЕНТЫ ДИЗАЙНА
-local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 8)
-local shadow = Instance.new("ImageLabel")
-shadow.Name = "Shadow"; shadow.AnchorPoint = Vector2.new(0.5, 0.5); shadow.Position = UDim2.fromScale(0.5, 0.5)
-shadow.Size = UDim2.fromScale(1, 1); shadow.Image = "rbxassetid://10423922669"; shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.6; shadow.ScaleType = Enum.ScaleType.Slice; shadow.SliceCenter = Rect.new(20, 20, 280, 280)
-shadow.ZIndex = -1; shadow.Parent = mainFrame
+local statusFrame = Instance.new("Frame", mainFrame); statusFrame.Name = "StatusFrame"; statusFrame.Position = UDim2.new(0.5, 0, 0, 40); statusFrame.Size = UDim2.new(1, -20, 0, 50); statusFrame.BackgroundTransparency = 1
+local statusLayout = Instance.new("UIListLayout", statusFrame); statusLayout.FillDirection = Enum.FillDirection.Horizontal; statusLayout.VerticalAlignment = Enum.VerticalAlignment.Center; statusLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; statusLayout.SortOrder = Enum.SortOrder.LayoutOrder; statusLayout.Padding = UDim.new(0, 10)
 
--- НАВИГАЦИОННАЯ ПАНЕЛЬ СЛЕВА
-local navBar = Instance.new("Frame")
-navBar.Name = "NavBar"; navBar.Size = UDim2.new(0, 120, 1, 0); navBar.BackgroundColor3 = theme.primary
-navBar.BorderSizePixel = 0; navBar.Parent = mainFrame
-local corner_nav = Instance.new("UICorner", navBar); corner_nav.CornerRadius = UDim.new(0, 8)
+local function createStatus(text)
+    local frame = Instance.new("Frame", statusFrame); frame.Size = UDim2.new(0, 130, 0, 30); frame.BackgroundTransparency = 1
+    local indicator = Instance.new("Frame", frame); indicator.Name = "Indicator"; indicator.Size = UDim2.new(0, 10, 0, 10); indicator.Position = UDim2.new(0, 0, 0.5, 0); indicator.AnchorPoint = Vector2.new(0, 0.5); indicator.BackgroundColor3 = theme.text_secondary
+    local corner_ind = Instance.new("UICorner", indicator); corner_ind.CornerRadius = UDim.new(1, 0)
+    local label = Instance.new("TextLabel", frame); label.Name = "Label"; label.Size = UDim2.new(1, -15, 1, 0); label.Position = UDim2.new(1, 0, 0.5, 0); label.AnchorPoint = Vector2.new(1, 0.5); label.BackgroundTransparency = 1; label.Text = text; label.Font = theme.font_main; label.TextColor3 = theme.text_secondary; label.TextSize = 12; label.TextXAlignment = Enum.TextXAlignment.Right
+    return indicator
+end
+local aegisStatus = createStatus("AEGIS SHIELD")
+local prometheusStatus = createStatus("PROMETHEUS CORE")
+local kairosStatus = createStatus("KAIROS JITTER")
+local metastasisStatus = createStatus("METASTASIS HOOK")
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"; titleLabel.Size = UDim2.new(1, 0, 0, 50); titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "PHANTOM"; titleLabel.Font = theme.font_title; titleLabel.TextColor3 = theme.text_primary
-titleLabel.TextSize = 20; titleLabel.Parent = navBar
+-- ======================================================================
+-- ||                СИСТЕМА ЛОГИРОВАНИЯ И УПРАВЛЕНИЯ                  ||
+-- ======================================================================
+local function addLog(subsystem, message, color)
+    if #logFrame:GetChildren() > 50 then logFrame:GetChildren()[2]:Destroy() end
+    local logLabel = Instance.new("TextLabel"); logLabel.Name = "Log"; logLabel.Size = UDim2.new(1, -10, 0, 14); logLabel.BackgroundTransparency = 1
+    logLabel.Font = theme.font_main; logLabel.Text = `[${subsystem}] >> ${message}`; logLabel.TextXAlignment = Enum.TextXAlignment.Left
+    logLabel.TextColor3 = color or theme.text_primary; logLabel.TextSize = 12; logLabel.Parent = logFrame
+    logFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+end
 
--- КНОПКА ВКЛАДКИ "PLAYER"
-local playerTabButton = Instance.new("TextButton")
-playerTabButton.Name = "PlayerTabButton"; playerTabButton.Size = UDim2.new(1, -16, 0, 35); playerTabButton.Position = UDim2.new(0.5, 0, 0, 60)
-playerTabButton.AnchorPoint = Vector2.new(0.5, 0); playerTabButton.BackgroundColor3 = theme.accent; playerTabButton.Text = "  Player"
-playerTabButton.Font = theme.font_main; playerTabButton.TextColor3 = theme.text_primary; playerTabButton.TextXAlignment = Enum.TextXAlignment.Left
-playerTabButton.TextSize = 16; playerTabButton.AutoButtonColor = false; playerTabButton.Parent = navBar
-local corner_tab = Instance.new("UICorner", playerTabButton); corner_tab.CornerRadius = UDim.new(0, 6)
+local function setStatus(indicator, isActive)
+    local color = isActive and theme.text_primary or theme.text_secondary
+    TweenService:Create(indicator, TweenInfo.new(0.2), {BackgroundColor3 = color}):Play()
+end
 
--- КОНТЕНТ СПРАВА
-local contentFrame = Instance.new("Frame")
-contentFrame.Name = "ContentFrame"; contentFrame.Position = UDim2.fromOffset(120, 0); contentFrame.Size = UDim2.new(1, -120, 1, 0)
-contentFrame.BackgroundColor3 = theme.background; contentFrame.BorderSizePixel = 0; contentFrame.Parent = mainFrame
-
--- СТРАНИЦА "PLAYER"
-local playerPage = Instance.new("Frame")
-playerPage.Name = "PlayerPage"; playerPage.Size = UDim2.fromScale(1, 1); playerPage.BackgroundTransparency = 1; playerPage.Parent = contentFrame
-
--- ФУНКЦИЯ СОЗДАНИЯ ПЕРЕКЛЮЧАТЕЛЯ
-local function createToggle(parent, title, position)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -40, 0, 50); frame.Position = position; frame.AnchorPoint = Vector2.new(0.5, 0); frame.BackgroundTransparency = 1; frame.Parent = parent
+-- ======================================================================
+-- ||                  ЯДРО СИСТЕМЫ "ХИМЕРА"                           ||
+-- ======================================================================
+local function hookNamecall()
+    if not humanoid then addLog("METASTASIS", "Hook failed: Humanoid not found.", theme.accent); return end
+    local mt = getrawmetatable(humanoid)
+    if not mt then addLog("METASTASIS", "Hook failed: Metatable is nil.", theme.accent); return end
+    originalNamecall = mt.__namecall
     
-    local label = Instance.new("TextLabel"); label.Name = "Label"; label.Size = UDim2.new(0.5, 0, 1, 0); label.BackgroundTransparency = 1
-    label.Font = theme.font_main; label.TextColor3 = theme.text_primary; label.TextXAlignment = Enum.TextXAlignment.Left; label.Text = title; label.TextSize = 16; label.Parent = frame
-
-    local toggleSwitch = Instance.new("TextButton"); toggleSwitch.Name = "Toggle"; toggleSwitch.Size = UDim2.new(0, 60, 0, 30); toggleSwitch.Position = UDim2.new(1, 0, 0.5, 0)
-    toggleSwitch.AnchorPoint = Vector2.new(1, 0.5); toggleSwitch.Text = ""; toggleSwitch.AutoButtonColor = false; toggleSwitch.Parent = frame
-
-    local bg = Instance.new("Frame", toggleSwitch); bg.Name = "Background"; bg.Size = UDim2.fromScale(1, 1); bg.BackgroundColor3 = theme.accent_off
-    local corner_bg = Instance.new("UICorner", bg); corner_bg.CornerRadius = UDim.new(1, 0)
-
-    local knob = Instance.new("Frame", bg); knob.Name = "Knob"; knob.Size = UDim2.new(0, 24, 0, 24); knob.Position = UDim2.fromScale(0, 0.5)
-    knob.AnchorPoint = Vector2.new(0, 0.5); knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    local corner_knob = Instance.new("UICorner", knob); corner_knob.CornerRadius = UDim.new(1, 0)
-    
-    local function setToggleState(state, no_anim)
-        local target_pos = state and UDim2.fromScale(1, 0.5) or UDim2.fromScale(0, 0.5)
-        local target_anchor = state and Vector2.new(1, 0.5) or Vector2.new(0, 0.5)
-        local target_color = state and theme.accent or theme.accent_off
-        if no_anim then
-            knob.Position, knob.AnchorPoint, bg.BackgroundColor3 = target_pos, target_anchor, target_color
-        else
-            TweenService:Create(knob, tween_info, {Position = target_pos, AnchorPoint = target_anchor}):Play()
-            TweenService:Create(bg, tween_info, {BackgroundColor3 = target_color}):Play()
+    local newNamecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        -- Мы перехватываем все, что может нанести урон
+        if method == "TakeDamage" or method == "takeDamage" then
+            addLog("METASTASIS", "Blocked incoming damage call.", theme.accent)
+            return -- БЛОКИРУЕМ ВЫЗОВ
         end
+        return originalNamecall(self, ...)
+    end)
+    
+    setreadonly(mt, false)
+    mt.__namecall = newNamecall
+    setreadonly(mt, true)
+    addLog("METASTASIS", "Core hook established on Humanoid.", theme.text_primary)
+    setStatus(metastasisStatus, true)
+end
+
+local function unhookNamecall()
+    if not humanoid or not originalNamecall then return end
+    local mt = getrawmetatable(humanoid)
+    if mt then
+        setreadonly(mt, false)
+        mt.__namecall = originalNamecall
+        setreadonly(mt, true)
+    end
+    addLog("METASTASIS", "Core hook released.", theme.text_secondary)
+    setStatus(metastasisStatus, false)
+end
+
+local function activateGodProtocol()
+    if not humanoid then return end
+    isGodProtocolActive = true
+    addLog("SYSTEM", "GOD PROTOCOL: ACTIVE", theme.accent)
+    hookNamecall()
+    setStatus(aegisStatus, true); setStatus(prometheusStatus, true); setStatus(kairosStatus, true)
+end
+
+local function deactivateGodProtocol()
+    isGodProtocolActive = false
+    addLog("SYSTEM", "GOD PROTOCOL: INACTIVE", theme.text_secondary)
+    unhookNamecall()
+    -- Отключаем все эффекты
+    if humanoid and humanoid.Parent then humanoid.MaxHealth = humanoid.MaxHealth end -- Reset MaxHealth
+    setStatus(aegisStatus, false); setStatus(prometheusStatus, false); setStatus(kairosStatus, false)
+end
+
+-- ======================================================================
+-- ||                ПРОТОКОЛ "ВОЗРОЖДЕНИЕ ФЕНИКСА"                    ||
+-- ======================================================================
+local function onCharacterAdded(newChar)
+    addLog("SYSTEM", "New host detected. Re-initializing protocols...", theme.text_secondary)
+    character, humanoid = newChar, newChar:WaitForChild("Humanoid")
+    if isGodProtocolActive then activateGodProtocol() end
+    humanoid.Died:Connect(function() addLog("SYSTEM", "Host terminated. Awaiting respawn.", theme.accent) end)
+end
+
+-- ======================================================================
+-- ||                          ГЛАВНЫЙ ЦИКЛ                            ||
+-- ======================================================================
+RunService.Heartbeat:Connect(function(dt)
+    if not isGodProtocolActive or not humanoid or humanoid.Health <= 0 then return end
+    
+    -- AEGIS SHIELD: Постоянное силовое поле
+    if not character:FindFirstChildOfClass("ForceField") then
+        Instance.new("ForceField", character)
+        addLog("AEGIS", "Shield integrity restored.", theme.text_primary)
     end
     
-    return toggleSwitch, setToggleState
-end
-
-local immortalityToggle, setImmortalityVisuals = createToggle(playerPage, "Бессмертие", UDim2.new(0.5, 0, 0, 20))
-
--- ======================================================================
--- ||                ОСНОВНОЙ МОДУЛЬ УПРАВЛЕНИЯ                        ||
--- ======================================================================
-
-local function applyGodProtocols()
-    if not humanoid or not humanoid.Parent then return end
-    if not godForceField or godForceField.Parent ~= character then if godForceField then godForceField:Destroy() end; godForceField = Instance.new("ForceField", character) end
-    if healthChangedConnection then healthChangedConnection:Disconnect() end
-    healthChangedConnection = humanoid.HealthChanged:Connect(function() if isImmortal then humanoid.Health = humanoid.MaxHealth end end)
-end
-
-local function removeGodProtocols()
-    if godForceField then godForceField:Destroy(); godForceField = nil end
-    if healthChangedConnection then healthChangedConnection:Disconnect(); healthChangedConnection = nil end
-    if humanoid and humanoid.Parent then humanoid.MaxHealth = defaultMaxHealth; humanoid.Health = defaultMaxHealth end
-end
-
-local function toggleImmortality()
-    if not humanoid then return end
-    isImmortal = not isImmortal
-    setImmortalityVisuals(isImmortal)
-    if isImmortal then applyGodProtocols() else removeGodProtocols() end
-end
-
--- ======================================================================
--- ||             ГЛАВНЫЙ ЦИКЛ ОБНОВЛЕНИЯ И ОБХОДА                     ||
--- ======================================================================
-RunService.Heartbeat:Connect(function()
-    if not character or not character.Parent or not humanoid or humanoid.Health <= 0 then return end
-    if isImmortal then
-        if not godForceField or godForceField.Parent ~= character then if godForceField then godForceField:Destroy() end; godForceField = Instance.new("ForceField", character) end
-        humanoid.MaxHealth = 1e9
-        humanoid.Health = 1e9
+    -- PROMETHEUS CORE: Агрессивная регенерация
+    humanoid.MaxHealth = 1e9
+    if humanoid.Health < humanoid.MaxHealth then
+        humanoid.Health = humanoid.MaxHealth
+        addLog("PROMETHEUS", "Health anomaly corrected.", theme.text_primary)
     end
+    
+    -- KAIROS JITTER: Сетевой шум
+    rootPart.CFrame = rootPart.CFrame * CFrame.new(0, math.sin(tick() * 20) * 0.005, 0)
 end)
 
 -- ======================================================================
--- ||           ПРОТОКОЛ "ВОЗРОЖДЕНИЕ ФЕНИКСА" (ОБРАБОТКА СМЕРТИ)      ||
+-- ||                         ИНИЦИАЛИЗАЦИЯ                            ||
 -- ======================================================================
-local function onCharacterAdded(newChar)
-    print("[PHANTOM UI]: Новый персонаж. Восстанавливаю протоколы.")
-    character, humanoid, rootPart = newChar, newChar:WaitForChild("Humanoid"), newChar:WaitForChild("HumanoidRootPart")
-    defaultWalkSpeed, defaultMaxHealth = humanoid.WalkSpeed, humanoid.MaxHealth
-    if isImmortal then applyGodProtocols() end
-    humanoid.Died:Connect(function() print("[PHANTOM UI]: Персонаж уничтожен.") removeGodProtocols() end)
-end
-
--- ======================================================================
--- ||                       ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ                      ||
--- ======================================================================
-local function makeDraggable(guiObject, dragHandle)
-    local dragging, dragStart, startPosition = false, nil, nil
-    dragHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging, dragStart, startPosition = true, input.Position, guiObject.Position
-            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            local delta = input.Position - dragStart
-            guiObject.Position = UDim2.new(startPosition.X.Scale, startPosition.X.Offset + delta.X, startPosition.Y.Scale, startPosition.Y.Offset + delta.Y)
-        end
-    end)
-end
-
-makeDraggable(mainFrame, mainFrame)
-immortalityToggle.MouseButton1Click:Connect(toggleImmortality)
-UserInputService.InputBegan:Connect(function(input, gpe) if gpe then return end; if input.KeyCode == Enum.KeyCode.G then toggleImmortality() end end)
+local function makeDraggable(gui) local d,s,p=false,nil,nil;gui.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 then d,s,p=true,i.Position,gui.Position;i.Changed:Connect(function()if i.UserInputState==Enum.UserInputState.End then d=false end end)end end);UserInputService.InputChanged:Connect(function(i)if d and i.UserInputType==Enum.UserInputType.MouseMovement then local t=i.Position-s;gui.Position=UDim2.new(p.X.Scale,p.X.Offset+t.X,p.Y.Scale,p.Y.Offset+t.Y)end end)end
+makeDraggable(mainFrame)
+UserInputService.InputBegan:Connect(function(i,g) if g then return end; if i.KeyCode==Enum.KeyCode.G then if isGodProtocolActive then deactivateGodProtocol() else activateGodProtocol() end end end)
 player.CharacterAdded:Connect(onCharacterAdded)
 if player.Character then onCharacterAdded(player.Character) end
 
--- Устанавливаем всё в начальное состояние
-setImmortalityVisuals(isImmortal, true)
-PhantomUI.Parent = player:WaitForChild("PlayerGui")
-print("[PHANTOM UI]: Система активна. Клавиша [G] для переключения.")
+ChimeraUI.Parent = player:WaitForChild("PlayerGui")
+addLog("SYSTEM", "Chimera is online. Press [G] to activate God Protocol.", theme.text_secondary)
 
 
