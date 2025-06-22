@@ -1,10 +1,10 @@
 -- ======================================================================
--- ||                 SERENITY UI - My Final, Honest Answer            ||
--- ||       Это не оружие, а убежище. Не чит, а произведение           ||
--- ||       искусства. Создано с уважением и как извинение.            ||
+-- ||                VOID UI (Reborn) - PURE DESIGN                    ||
+-- ||       Создано с нуля с фокусом на стиле, атмосфере и             ||
+-- ||       стабильности. Ничего лишнего. Только чистый вайб.          ||
 -- ======================================================================
 
-print("[SERENITY]: Loading...")
+print("[VOID]: Инициализация...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -14,133 +14,126 @@ local UserInputService = game:GetService("UserInputService")
 
 -- ПЕРЕМЕННЫЕ
 local player = Players.LocalPlayer
-local character
-local last_update = 0
 
--- КОНФИГУРАЦИЯ ДИЗАЙНА "SERENITY"
+-- КОНФИГУРАЦИЯ ДИЗАЙНА "VOID"
 local theme = {
-    font_main = Enum.Font.Gotham,
-    font_light = Enum.Font.GothamLight,
-    
-    background = Color3.fromRGB(30, 30, 45),
-    background_transparency = 0.4,
-    
-    primary_accent = Color3.fromRGB(180, 160, 255),
-    secondary_accent = Color3.fromRGB(100, 100, 120),
-    
-    text_primary = Color3.fromRGB(240, 240, 255),
-    text_secondary = Color3.fromRGB(160, 160, 180),
+    background = Color3.fromRGB(13, 13, 18),
+    primary = Color3.fromRGB(22, 22, 28),
+    accent = Color3.fromRGB(118, 75, 255),
+    text_primary = Color3.fromRGB(230, 230, 230),
+    text_secondary = Color3.fromRGB(150, 150, 150),
+    font_main = Enum.Font.SourceSans,
+    font_bold = Enum.Font.SourceSansBold,
 }
-local tween_info = TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+local tween_info_fast = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+local tween_info_slow = TweenInfo.new(0.4, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
 
 -- ======================================================================
 -- ||                      СОЗДАНИЕ ИНТЕРФЕЙСА                         ||
 -- ======================================================================
-local SerenityUI = Instance.new("ScreenGui")
-SerenityUI.Name = "SerenityUI"
-SerenityUI.ResetOnSpawn = false
-SerenityUI.ZIndexBehavior = Enum.ZIndexBehavior.Global
+local VOID_UI = Instance.new("ScreenGui")
+VOID_UI.Name = "VOID_UI"
+VOID_UI.ResetOnSpawn = false
+VOID_UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
--- ЭФФЕКТ РАЗМЫТИЯ ФОНА
-local blur = Instance.new("BlurEffect")
-blur.Size = 0
-blur.Parent = game:GetService("Lighting")
-
--- ОСНОВНОЕ ОКНО
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.Position = UDim2.fromScale(0.5, 0.5)
-mainFrame.Size = UDim2.new(0, 300, 0, 200)
+mainFrame.Position = UDim2.fromScale(0.5, 0.48) -- Start slightly up for intro animation
+mainFrame.Size = UDim2.new(0, 320, 0, 150)
 mainFrame.BackgroundColor3 = theme.background
-mainFrame.BackgroundTransparency = theme.background_transparency
+mainFrame.BackgroundTransparency = 1 -- Start fully transparent
 mainFrame.BorderSizePixel = 0
-mainFrame.ClipsDescendants = true
 mainFrame.Visible = false -- Start hidden
-mainFrame.Parent = SerenityUI
+mainFrame.Parent = VOID_UI
 
-local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 12)
-local border = Instance.new("UIStroke", mainFrame); border.Color = theme.secondary_accent; border.Thickness = 1.5; border.Transparency = 0.5
+local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 6)
+local border = Instance.new("UIStroke", mainFrame); border.Color = theme.primary; border.Thickness = 2
 
--- ЗАГОЛОВОК
-local header = Instance.new("TextLabel")
-header.Name = "Header"
-header.Size = UDim2.new(1, 0, 0, 50)
-header.BackgroundTransparency = 1
-header.Font = theme.font_light
-header.Text = "S E R E N I T Y"
-header.TextColor3 = theme.text_primary
-header.TextSize = 24
-header.Parent = mainFrame
-
--- ИНФОРМАЦИОННЫЙ БЛОК
-local infoBlock = Instance.new("Frame")
-infoBlock.Name = "InfoBlock"
-infoBlock.Size = UDim2.new(1, -40, 0, 100)
-infoBlock.Position = UDim2.new(0.5, 0, 0.6, 0)
-infoBlock.AnchorPoint = Vector2.new(0.5, 0.5)
-infoBlock.BackgroundTransparency = 1
-infoBlock.Parent = mainFrame
-
-local infoLayout = Instance.new("UIListLayout", infoBlock)
-infoLayout.Padding = UDim.new(0, 10)
-infoLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local function createInfoLine(icon_id, name)
-    local frame = Instance.new("Frame", infoBlock)
-    frame.Name = name .. "Info"
-    frame.Size = UDim2.new(1, 0, 0, 20)
-    frame.BackgroundTransparency = 1
-    
-    local icon = Instance.new("ImageLabel", frame)
-    icon.Size = UDim2.fromOffset(16, 16)
-    icon.Position = UDim2.fromScale(0, 0.5)
-    icon.AnchorPoint = Vector2.new(0, 0.5)
-    icon.BackgroundTransparency = 1
-    icon.Image = "rbxassetid://" .. icon_id
-    icon.ImageColor3 = theme.primary_accent
-    
-    local label = Instance.new("TextLabel", frame)
-    label.Name = "Label"
-    label.Size = UDim2.new(1, -25, 1, 0)
-    label.Position = UDim2.fromScale(1, 0.5)
-    label.AnchorPoint = Vector2.new(1, 0.5)
-    label.BackgroundTransparency = 1
-    label.Font = theme.font_main
-    label.TextColor3 = theme.text_secondary
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Text = name
-    label.TextSize = 14
-
-    local value = Instance.new("TextLabel", frame)
-    value.Name = "Value"
-    value.Size = UDim2.new(0.5, 0, 1, 0)
-    value.Position = UDim2.fromScale(1, 0.5)
-    value.AnchorPoint = Vector2.new(1, 0.5)
-    value.BackgroundTransparency = 1
-    value.Font = theme.font_main
-    value.TextColor3 = theme.text_primary
-    value.TextXAlignment = Enum.TextXAlignment.Right
-    value.Text = "..."
-    value.TextSize = 14
-
-    return value
+-- ЖИВОЙ ФОН
+local gridBg = Instance.new("Frame", mainFrame)
+gridBg.Name = "GridBackground"
+gridBg.Size = UDim2.fromScale(1, 1)
+gridBg.BackgroundTransparency = 1
+gridBg.ClipsDescendants = true
+gridBg.ZIndex = 0
+local gridLayout = Instance.new("UIGridLayout", gridBg)
+gridLayout.CellSize = UDim2.fromOffset(15, 15)
+gridLayout.FillDirection = Enum.FillDirection.Horizontal
+for i = 1, 400 do
+    local p = Instance.new("Frame", gridBg)
+    p.BackgroundColor3 = theme.primary
+    p.BorderSizePixel = 0
+    p.Transparency = math.random(85, 95) / 100
 end
 
-local fpsValue = createInfoLine("6034341029", "FPS")
-local pingValue = createInfoLine("6034338634", "Ping")
-local timeValue = createInfoLine("6034340005", "Time")
+-- ЗАГОЛОВОК
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Position = UDim2.new(0.5, 0, 0, 25)
+titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+titleLabel.Size = UDim2.fromScale(1, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "V O I D"
+titleLabel.Font = theme.font_bold
+titleLabel.TextColor3 = theme.text_primary
+titleLabel.TextSize = 20
+titleLabel.ZIndex = 2
+titleLabel.Parent = mainFrame
 
--- АНИМАЦИЯ ПОЯВЛЕНИЯ/ИСЧЕЗНОВЕНИЯ
+-- ПЕРЕКЛЮЧАТЕЛЬ (без функции, только дизайн)
+local function createToggle(parent, title, position)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -40, 0, 50); frame.Position = position; frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.BackgroundTransparency = 1; frame.ZIndex = 2; frame.Parent = parent
+
+    local label = Instance.new("TextLabel", frame)
+    label.Name = "Label"; label.Size = UDim2.new(0.7, 0, 1, 0); label.BackgroundTransparency = 1; label.Font = theme.font_main
+    label.TextColor3 = theme.text_secondary; label.TextXAlignment = Enum.TextXAlignment.Left; label.Text = title; label.TextSize = 16
+
+    local toggleButton = Instance.new("TextButton", frame)
+    toggleButton.Name = "Toggle"; toggleButton.Size = UDim2.new(0, 50, 0, 26); toggleButton.Position = UDim2.new(1, 0, 0.5, 0)
+    toggleButton.AnchorPoint = Vector2.new(1, 0.5); toggleButton.Text = ""; toggleButton.AutoButtonColor = false
+
+    local bg = Instance.new("Frame", toggleButton); bg.Name = "Background"; bg.Size = UDim2.fromScale(1, 1); bg.BackgroundColor3 = theme.primary
+    local c_bg = Instance.new("UICorner", bg); c_bg.CornerRadius = UDim.new(1, 0)
+    local s_bg = Instance.new("UIStroke", bg); s_bg.Color = Color3.fromRGB(50,50,50); s_bg.Thickness = 1.5
+
+    local knob = Instance.new("Frame", bg); knob.Name = "Knob"; knob.Size = UDim2.new(0, 20, 0, 20); knob.Position = UDim2.fromScale(0.15, 0.5)
+    knob.AnchorPoint = Vector2.new(0.5, 0.5); knob.BackgroundColor3 = theme.text_secondary
+    local c_knob = Instance.new("UICorner", knob); c_knob.CornerRadius = UDim.new(1, 0)
+    
+    local state = false
+    local function setToggleState(no_anim)
+        local target_pos = state and UDim2.fromScale(0.85, 0.5) or UDim2.fromScale(0.15, 0.5)
+        local target_color = state and theme.accent or theme.text_secondary
+        if no_anim then
+            knob.Position, knob.BackgroundColor3 = target_pos, target_color
+        else
+            TweenService:Create(knob, tween_info_fast, {Position = target_pos, BackgroundColor3 = target_color}):Play()
+        end
+    end
+    
+    toggleButton.MouseButton1Click:Connect(function()
+        state = not state
+        setToggleState()
+    end)
+    
+    return label
+end
+
+local functionGlitchLabel = createToggle(mainFrame, "Placeholder", UDim2.new(0.5, 0, 0.6, 0))
+
+-- ======================================================================
+-- ||                       АНИМАЦИИ И ЭФФЕКТЫ                         ||
+-- ======================================================================
 local function setUIVisible(visible)
-    local target_blur = visible and 12 or 0
-    local target_pos = visible and UDim2.fromScale(0.5, 0.5) or UDim2.fromScale(0.5, 0.45)
-    local target_transparency = visible and theme.background_transparency or 1
+    local target_pos = visible and UDim2.fromScale(0.5, 0.5) or UDim2.fromScale(0.5, 0.48)
+    local target_transparency = visible and 0 or 1
     
-    mainFrame.Visible = true
+    if visible then mainFrame.Visible = true end
     
-    TweenService:Create(blur, tween_info, {Size = target_blur}):Play()
-    local mainTween = TweenService:Create(mainFrame, tween_info, {Position = target_pos, BackgroundTransparency = target_transparency})
+    local mainTween = TweenService:Create(mainFrame, tween_info_slow, {Position = target_pos, BackgroundTransparency = target_transparency})
     mainTween:Play()
     
     if not visible then
@@ -149,34 +142,63 @@ local function setUIVisible(visible)
     end
 end
 
+local isGlitching = false
+local function playGlitch(guiObject)
+    if isGlitching then return end
+    isGlitching = true
+    local originalText = guiObject.Text
+    local randomChars = "!@#$%^&*()_+{}|:<>?`~"
+    for i = 1, 5 do
+        local newText = ""
+        for j = 1, #originalText do
+            if math.random() > 0.6 then
+                newText = newText .. string.sub(randomChars, math.random(1, #randomChars), math.random(1, #randomChars))
+            else
+                newText = newText .. string.sub(originalText, j, j)
+            end
+        end
+        guiObject.Text = newText
+        task.wait(0.03)
+    end
+    guiObject.Text = originalText
+    isGlitching = false
+end
+
+titleLabel.MouseEnter:Connect(function() playGlitch(titleLabel) end)
+functionGlitchLabel.MouseEnter:Connect(function() playGlitch(functionGlitchLabel) end)
+
 -- ======================================================================
--- ||                ОСНОВНОЙ МОДУЛЬ УПРАВЛЕНИЯ                        ||
+-- ||                 ГЛАВНЫЙ ЦИКЛ ОБНОВЛЕНИЯ ФОНА                     ||
 -- ======================================================================
-RunService.RenderStepped:Connect(function(dt)
-    -- Обновляем информацию не каждый кадр для производительности
-    if tick() - last_update < 0.5 then return end
-    last_update = tick()
-    
-    -- FPS Counter
-    local current_fps = math.floor(1/dt)
-    fpsValue.Text = tostring(current_fps)
-    
-    -- Ping Counter
-    local ping = math.floor(player:GetNetworkPing() * 1000)
-    pingValue.Text = tostring(ping) .. " ms"
-    
-    -- Time
-    timeValue.Text = os.date("%H:%M:%S")
+RunService.Heartbeat:Connect(function(dt)
+    if not mainFrame.Visible then return end
+    -- Анимация фона
+    gridLayout.AbsoluteContentSize = Vector2.new(gridLayout.AbsoluteContentSize.X + dt * 5, gridLayout.AbsoluteContentSize.Y)
+    if gridLayout.AbsoluteContentSize.X > 500 then
+        gridLayout.AbsoluteContentSize = Vector2.new(0, gridLayout.AbsoluteContentSize.Y)
+    end
 end)
 
 -- ======================================================================
 -- ||                       ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ                      ||
 -- ======================================================================
-local function onCharacterAdded(newChar)
-    character = newChar
+local function makeDraggable(guiObject)
+    local dragging, dragStart, startPos = false, nil, nil
+    guiObject.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging, dragStart, startPos = true, input.Position, guiObject.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 end
 
--- УПРАВЛЕНИЕ
+makeDraggable(mainFrame)
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.Insert then
@@ -184,11 +206,8 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
-player.CharacterAdded:Connect(onCharacterAdded)
-if player.Character then onCharacterAdded(player.Character) end
-
-SerenityUI.Parent = player:WaitForChild("PlayerGui")
-print("[SERENITY]: Loaded. Press [Insert] to toggle UI.")
+VOID_UI.Parent = player:WaitForChild("PlayerGui")
+print("[VOID]: Система активна. [Insert] - показать/скрыть.")
 task.wait(0.5)
 setUIVisible(true) -- Показываем при запуске
 
