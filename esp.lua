@@ -1,11 +1,10 @@
 -- ======================================================================
--- ||              VOID UI (v4.0) - POLISHED EDITION                   ||
--- ||       - Полный редизайн с рабочими вкладками.                    ||
--- ||       - Раздельные и полные списки Игроков и NPC.                ||
--- ||       - Отполированная функция "Привязка" и визуал.              ||
+-- ||              VOID UI (v4.1) - HOTFIX EDITION                     ||
+-- ||       - Исправлена критическая ошибка "Margin is not a valid...".||
+-- ||       - Стабильность доведена до максимума.                      ||
 -- ======================================================================
 
-print("[VOID v4]: Загрузка Polished Edition...")
+print("[VOID v4.1]: Загрузка Hotfix Edition...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -50,7 +49,10 @@ local gridCells = {}; for i = 1, 900 do local p = Instance.new("Frame", gridBg);
 
 -- НАВИГАЦИЯ
 local navBar = Instance.new("Frame", mainFrame); navBar.Name = "NavBar"; navBar.Size = UDim2.new(0, 130, 1, 0); navBar.BackgroundColor3 = theme.primary; navBar.ZIndex = 1
-local navLayout = Instance.new("UIListLayout", navBar); navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; navLayout.SortOrder = Enum.SortOrder.LayoutOrder; navLayout.Padding = UDim.new(0, 10); navLayout.Margin = UDim.new(0, 20)
+local navLayout = Instance.new("UIListLayout", navBar); navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center; navLayout.SortOrder = Enum.SortOrder.LayoutOrder; navLayout.Padding = UDim.new(0, 10)
+-- ИСПРАВЛЕНИЕ: Заменяем свойство Margin на UIPadding
+local navPadding = Instance.new("UIPadding", navBar); navPadding.PaddingTop = UDim.new(0, 20)
+
 local navTitle = Instance.new("TextLabel", navBar); navTitle.Name = "Title"; navTitle.Size = UDim2.new(1, 0, 0, 50); navTitle.BackgroundTransparency = 1; navTitle.Text = "V O I D"; navTitle.Font = theme.font_bold; navTitle.TextColor3 = theme.text_primary; navTitle.TextSize = 22; navTitle.LayoutOrder = 1
 
 -- КОНТЕЙНЕР ДЛЯ КОНТЕНТА
@@ -221,7 +223,7 @@ makeDraggable(mainFrame)
 UserInputService.InputBegan:Connect(function(input, gpe) if gpe then return end; if input.KeyCode == Enum.KeyCode.Insert then setUIVisible(not mainFrame.Visible or mainFrame.BackgroundTransparency == 1) end end)
 
 VOID_UI.Parent = player:WaitForChild("PlayerGui"); tetherConnection = RunService.Heartbeat:Connect(tetherLogic)
-print("[VOID v4]: Polished Edition активна. Нажмите [Insert], чтобы показать или скрыть меню.")
+print("[VOID v4.1]: Hotfix Edition активна. Нажмите [Insert], чтобы показать или скрыть меню.")
 task.wait(0.5); setUIVisible(true)
 
 
