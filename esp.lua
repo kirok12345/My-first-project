@@ -1,10 +1,10 @@
 -- ======================================================================
--- ||              VOID UI (v1.1) - FONT & STABILITY FIX               ||
--- ||      Исправлена критическая ошибка со шрифтами.                 ||
--- ||      Дизайн сохранен, стабильность улучшена.                     ||
+-- ||              VOID UI (v1.2) - LIVE EDITION                       ||
+-- ||      - Добавлен улучшенный "дышащий" живой фон.                 ||
+-- ||      - Бинд на клавишу [Insert] для открытия/закрытия меню.     ||
 -- ======================================================================
 
-print("[VOID]: Инициализация стабильной версии...")
+print("[VOID]: Инициализация Live Edition...")
 
 -- СЕРВИСЫ
 local Players = game:GetService("Players")
@@ -15,14 +15,13 @@ local UserInputService = game:GetService("UserInputService")
 -- ПЕРЕМЕННЫЕ
 local player = Players.LocalPlayer
 
--- КОНФИГУРАЦИЯ ДИЗАЙНА "VOID" (С ИСПРАВЛЕННЫМИ ШРИФТАМИ)
+-- КОНФИГУРАЦИЯ ДИЗАЙНА "VOID"
 local theme = {
     background = Color3.fromRGB(13, 13, 18),
     primary = Color3.fromRGB(22, 22, 28),
     accent = Color3.fromRGB(118, 75, 255),
     text_primary = Color3.fromRGB(230, 230, 230),
     text_secondary = Color3.fromRGB(150, 150, 150),
-    -- ИСПРАВЛЕННЫЕ ШРИФТЫ
     font_main = Enum.Font.SourceSans,
     font_bold = Enum.Font.SourceSansBold,
 }
@@ -40,12 +39,12 @@ VOID_UI.ZIndexBehavior = Enum.ZIndexBehavior.Global
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.Position = UDim2.fromScale(0.5, 0.48) -- Start slightly up for intro animation
+mainFrame.Position = UDim2.fromScale(0.5, 0.48)
 mainFrame.Size = UDim2.new(0, 320, 0, 150)
 mainFrame.BackgroundColor3 = theme.background
-mainFrame.BackgroundTransparency = 1 -- Start fully transparent
+mainFrame.BackgroundTransparency = 1
 mainFrame.BorderSizePixel = 0
-mainFrame.Visible = false -- Start hidden
+mainFrame.Visible = false
 mainFrame.Parent = VOID_UI
 
 local corner = Instance.new("UICorner", mainFrame); corner.CornerRadius = UDim.new(0, 6)
@@ -61,28 +60,23 @@ gridBg.ZIndex = 0
 local gridLayout = Instance.new("UIGridLayout", gridBg)
 gridLayout.CellSize = UDim2.fromOffset(15, 15)
 gridLayout.FillDirection = Enum.FillDirection.Horizontal
+local gridCells = {}
 for i = 1, 400 do
     local p = Instance.new("Frame", gridBg)
     p.BackgroundColor3 = theme.primary
     p.BorderSizePixel = 0
-    p.Transparency = math.random(85, 95) / 100
+    p.Transparency = 1
+    table.insert(gridCells, p)
 end
 
 -- ЗАГОЛОВОК
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Position = UDim2.new(0.5, 0, 0, 25)
-titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-titleLabel.Size = UDim2.fromScale(1, 0)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "V O I D"
-titleLabel.Font = theme.font_bold
-titleLabel.TextColor3 = theme.text_primary
-titleLabel.TextSize = 20
-titleLabel.ZIndex = 2
-titleLabel.Parent = mainFrame
+titleLabel.Name = "Title"; titleLabel.Position = UDim2.new(0.5, 0, 0, 25); titleLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+titleLabel.Size = UDim2.fromScale(1, 0); titleLabel.BackgroundTransparency = 1; titleLabel.Text = "V O I D"
+titleLabel.Font = theme.font_bold; titleLabel.TextColor3 = theme.text_primary; titleLabel.TextSize = 20
+titleLabel.ZIndex = 2; titleLabel.Parent = mainFrame
 
--- ПЕРЕКЛЮЧАТЕЛЬ (без функции, только дизайн)
+-- ПЕРЕКЛЮЧАТЕЛЬ
 local function createToggle(parent, title, position)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -40, 0, 50); frame.Position = position; frame.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -105,24 +99,14 @@ local function createToggle(parent, title, position)
     local c_knob = Instance.new("UICorner", knob); c_knob.CornerRadius = UDim.new(1, 0)
     
     local state = false
-    local function setToggleState(no_anim)
-        local target_pos = state and UDim2.fromScale(0.85, 0.5) or UDim2.fromScale(0.15, 0.5)
-        local target_color = state and theme.accent or theme.text_secondary
-        if no_anim then
-            knob.Position, knob.BackgroundColor3 = target_pos, target_color
-        else
-            TweenService:Create(knob, tween_info_fast, {Position = target_pos, BackgroundColor3 = target_color}):Play()
-        end
-    end
-    
     toggleButton.MouseButton1Click:Connect(function()
         state = not state
-        setToggleState()
+        local target_pos = state and UDim2.fromScale(0.85, 0.5) or UDim2.fromScale(0.15, 0.5)
+        local target_color = state and theme.accent or theme.text_secondary
+        TweenService:Create(knob, tween_info_fast, {Position = target_pos, BackgroundColor3 = target_color}):Play()
     end)
-    
     return label
 end
-
 local functionGlitchLabel = createToggle(mainFrame, "Placeholder", UDim2.new(0.5, 0, 0.6, 0))
 
 -- ======================================================================
@@ -131,16 +115,10 @@ local functionGlitchLabel = createToggle(mainFrame, "Placeholder", UDim2.new(0.5
 local function setUIVisible(visible)
     local target_pos = visible and UDim2.fromScale(0.5, 0.5) or UDim2.fromScale(0.5, 0.48)
     local target_transparency = visible and 0 or 1
-    
     if visible then mainFrame.Visible = true end
-    
     local mainTween = TweenService:Create(mainFrame, tween_info_slow, {Position = target_pos, BackgroundTransparency = target_transparency})
     mainTween:Play()
-    
-    if not visible then
-        mainTween.Completed:Wait()
-        mainFrame.Visible = false
-    end
+    if not visible then mainTween.Completed:Wait(); mainFrame.Visible = false end
 end
 
 local isGlitching = false
@@ -148,23 +126,22 @@ local function playGlitch(guiObject)
     if isGlitching then return end
     isGlitching = true
     local originalText = guiObject.Text
-    local randomChars = "!@#$%^&*()_+{}|:<>?`~"
-    for i = 1, 5 do
+    local randomChars = "!@#$%"
+    for i = 1, 4 do
         local newText = ""
         for j = 1, #originalText do
-            if math.random() > 0.6 then
+            if math.random() > 0.6 and string.sub(originalText, j, j) ~= " " then
                 newText = newText .. string.sub(randomChars, math.random(1, #randomChars), math.random(1, #randomChars))
             else
                 newText = newText .. string.sub(originalText, j, j)
             end
         end
         guiObject.Text = newText
-        task.wait(0.03)
+        task.wait(0.04)
     end
     guiObject.Text = originalText
     isGlitching = false
 end
-
 titleLabel.MouseEnter:Connect(function() playGlitch(titleLabel) end)
 functionGlitchLabel.MouseEnter:Connect(function() playGlitch(functionGlitchLabel) end)
 
@@ -173,10 +150,15 @@ functionGlitchLabel.MouseEnter:Connect(function() playGlitch(functionGlitchLabel
 -- ======================================================================
 RunService.Heartbeat:Connect(function(dt)
     if not mainFrame.Visible then return end
-    -- Анимация фона
+    local t = tick()
+    -- Сдвиг сетки
     gridLayout.AbsoluteContentSize = Vector2.new(gridLayout.AbsoluteContentSize.X + dt * 5, gridLayout.AbsoluteContentSize.Y)
     if gridLayout.AbsoluteContentSize.X > 500 then
         gridLayout.AbsoluteContentSize = Vector2.new(0, gridLayout.AbsoluteContentSize.Y)
+    end
+    -- "Дыхание" сетки
+    for i, cell in ipairs(gridCells) do
+        cell.Transparency = 0.9 + math.sin(t * 2 + i * 0.5) * 0.05
     end
 end)
 
@@ -198,17 +180,19 @@ local function makeDraggable(guiObject)
         end
     end)
 end
-
 makeDraggable(mainFrame)
+
+-- БИНД ДЛЯ ОТКРЫТИЯ/ЗАКРЫТИЯ МЕНЮ
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    -- Клавиша Insert используется для переключения видимости UI
     if input.KeyCode == Enum.KeyCode.Insert then
         setUIVisible(not mainFrame.Visible or mainFrame.BackgroundTransparency == 1)
     end
 end)
 
 VOID_UI.Parent = player:WaitForChild("PlayerGui")
-print("[VOID]: Система активна. [Insert] - показать/скрыть.")
+print("[VOID]: Система активна. Нажмите [Insert], чтобы показать или скрыть меню.")
 task.wait(0.5)
 setUIVisible(true) -- Показываем при запуске
 
