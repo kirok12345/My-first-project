@@ -1,9 +1,14 @@
 -- ServerScript (внутри ServerScriptService)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local immortalityStatusEvent = Instance.new("RemoteEvent")
-immortalityStatusEvent.Name = "ImmortalityStatus"
-immortalityStatusEvent.Parent = ReplicatedStorage
+
+-- Создаем RemoteEvent, если его нет
+local immortalityStatusEvent = ReplicatedStorage:FindFirstChild("ImmortalityStatus")
+if not immortalityStatusEvent then
+    immortalityStatusEvent = Instance.new("RemoteEvent")
+    immortalityStatusEvent.Name = "ImmortalityStatus"
+    immortalityStatusEvent.Parent = ReplicatedStorage
+end
 
 -- Таблица для отслеживания бессмертия игроков
 local immortalityPlayers = {}
