@@ -10,9 +10,9 @@ wait(2)
 
 -- Переменные состояния
 local godModeActive = false
-local menuCollapsed = false -- Новая переменная для состояния сворачивания
-local originalSize = UDim2.new(0, 200, 0, 150) -- Исходный размер фрейма
-local collapsedSize = UDim2.new(0, 200, 0, 30) -- Размер в свернутом состоянии
+local menuCollapsed = false
+local originalSize = UDim2.new(0, 200, 0, 150)
+local collapsedSize = UDim2.new(0, 200, 0, 30)
 
 -- Создаем GUI (Graphical User Interface)
 local ScreenGui = Instance.new("ScreenGui")
@@ -27,15 +27,15 @@ MainFrame.BorderColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.BorderSizePixel = 2
 MainFrame.Parent = ScreenGui
 
--- Заголовок, который будет также использоваться для перетаскивания и сворачивания
+-- Заголовок, который будет использоваться для перетаскивания
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Title.Text = "Меню Выжившего (Клик для сворачивания)"
+Title.Text = "Меню Выжившего (Кнопка Insert для сворачивания)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18 -- Чуть меньше, чтобы уместилось
+Title.TextSize = 18
 Title.Parent = MainFrame
 
 -- Кнопка переключения God Mode
@@ -80,7 +80,7 @@ CloseButton.Text = "X"
 CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseButton.Font = Enum.Font.SourceSansBold
 CloseButton.TextSize = 16
-CloseButton.Parent = Title -- Размещаем на заголовке
+CloseButton.Parent = Title 
 
 CloseButton.MouseButton1Click:Connect(function()
     ScreenGui:Destroy() -- Удаляем GUI
@@ -108,7 +108,7 @@ end
 -- Изначальное обновление статусов
 updateStatuses()
 
--- Функция активации God Mode
+-- Функция активации God Mode (улучшенная)
 local function activateGodMode()
     local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
@@ -123,6 +123,7 @@ local function activateGodMode()
         if Character then
             local Humanoid = Character:FindFirstChildOfClass("Humanoid")
             if not Humanoid then
+                -- Попытка найти Humanoid всеми возможными способами
                 for _, descendant in ipairs(Character:GetDescendants()) do
                     if descendant:IsA("Humanoid") then
                         Humanoid = descendant
@@ -132,34 +133,64 @@ local function activateGodMode()
             end
 
             if Humanoid then
+                -- Основные методы God Mode
                 Humanoid.Health = math.huge
                 Humanoid.MaxHealth = math.huge
-
+                Humanoid.BreakJointsOnDeath = false 
+                
+                -- Попытка отключить скрипты урона, которые Roblox может внедрять
                 for _, child in ipairs(Character:GetChildren()) do
-                    if child:IsA("Script") and (string.find(child.Name:lower(), "health") or string.find(child.Name:lower(), "damage")) then
-                        pcall(function() child:Destroy() end)
+                    if child:IsA("Script") or child:IsA("LocalScript") then
+                        -- Ищем скрипты по именам, связанным с уроном/здоровьем
+                        local scriptName = child.Name:lower()
+                        if string.find(scriptName, "health") or 
+                           string.find(scriptName, "damage") or 
+                           string.find(scriptName, "hit") or
+                           string.find(scriptName, "combat") then
+                            pcall(function() child:Destroy() end) -- Пытаемся удалить их
+                        end
                     end
                 end
-                
+
+                -- Попытка перехватить события урона (может быть нестабильно)
                 if Humanoid:FindFirstChild("TakeDamage") then
                     pcall(function() Humanoid.TakeDamage:DisconnectAll() end)
                 end
 
-                Humanoid.BreakJointsOnDeath = false 
+                -- Дополнительные агрессивные методы (может привести к кику/бану)
+                -- Отключение физики для предотвращения урона от падения/столкновений (если это не ломает игру)
+                pcall(function()
+                    for _, part in ipairs(Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                            part.Anchored = false -- Не якорим, чтобы персонаж мог двигаться
+                        end
+                    end
+                end)
+
+                -- Постоянное исцеление (если Health = math.huge не сработало)
+                spawn(function()
+                    while godModeActive and wait(0.1) do
+                        if Humanoid and Humanoid.Health ~= math.huge then
+                            Humanoid.Health = Humanoid.MaxHealth
+                        end
+                    end
+                end)
+
                 godModeActive = true
                 ToggleGodModeButton.Text = "Отключить God Mode"
                 ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красная кнопка
-                print("God Mode активирован!")
+                print("God Mode активирован! Надеюсь, на этот раз работает.")
             else
-                warn("Гуманоид так и не найден!")
+                warn("Гуманоид так и не найден! God Mode не активирован.")
                 godModeActive = false
             end
         else
-            warn("Персонаж не найден даже после ожидания!")
+            warn("Персонаж не найден даже после ожидания! God Mode не активирован.")
             godModeActive = false
         end
     else
-        warn("Локальный игрок не найден!")
+        warn("Локальный игрок не найден! God Mode не активирован.")
         godModeActive = false
     end
     updateStatuses()
@@ -174,6 +205,8 @@ local function deactivateGodMode()
         local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if Humanoid then
             Humanoid.Health = Humanoid.MaxHealth -- Возвращаем к нормальному максимальному здоровью
+            -- Восстановить удаленные скрипты или отключенные события крайне сложно.
+            -- Поэтому, возможно, придется перезапустить игру для полного сброса.
         end
     end
     godModeActive = false
@@ -192,40 +225,41 @@ ToggleGodModeButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Перетаскивание меню
+-- Перетаскивание меню (улучшенное)
+local UserInputService = game:GetService("UserInputService")
+local mouse = game.Players.LocalPlayer:GetMouse()
+
 local dragging = false
-local dragStart = Vector2.new(0,0)
-local startPos = UDim2.new(0,0,0,0)
+local dragStartPos = Vector2.new(0,0)
+local frameStartPos = UDim2.new(0,0,0,0)
 
-Title.MouseButton1Down:Connect(function(x, y)
-    dragging = true
-    dragStart = Vector2.new(x, y)
-    startPos = MainFrame.Position
-    -- Не позволяем перетаскивать, если меню свернуто, чтобы клик на заголовок сворачивал его
-    if menuCollapsed then dragging = false return end 
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStartPos = UserInputService:GetMouseLocation()
+        frameStartPos = MainFrame.Position
+        input:Capture() -- Захватываем ввод, чтобы не было конфликтов
+    end
 end)
 
-Title.MouseButton1Up:Connect(function()
-    dragging = false
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        local delta = UserInputService:GetMouseLocation() - dragStartPos
+        MainFrame.Position = UDim2.new(frameStartPos.X.Scale, frameStartPos.X.Offset + delta.X,
+                                        frameStartPos.Y.Scale, frameStartPos.Y.Offset + delta.Y)
+    end
 end)
 
-game:GetService("UserInputService").InputEnded:Connect(function(input)
+UserInputService.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
 
--- Сворачивание/разворачивание меню по клику на заголовок
-Title.MouseButton1Click:Connect(function()
-    if not dragging then -- Убедимся, что это был клик, а не начало перетаскивания
+-- Сворачивание/разворачивание меню по кнопке Insert
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
         if menuCollapsed then
             -- Развернуть меню
             MainFrame.Size = originalSize
@@ -233,7 +267,7 @@ Title.MouseButton1Click:Connect(function()
             AntiCheatStatus.Visible = true
             GodModeStatus.Visible = true
             menuCollapsed = false
-            Title.Text = "Меню Выжившего (Клик для сворачивания)"
+            Title.Text = "Меню Выжившего (Кнопка Insert для сворачивания)"
         else
             -- Свернуть меню
             MainFrame.Size = collapsedSize
@@ -241,16 +275,16 @@ Title.MouseButton1Click:Connect(function()
             AntiCheatStatus.Visible = false
             GodModeStatus.Visible = false
             menuCollapsed = true
-            Title.Text = "Меню Выжившего (Клик для разворачивания)"
+            Title.Text = "Меню Выжившего (Кнопка Insert для разворачивания)"
         end
     end
 end)
 
-
--- Обновляем статусы каждую секунду на случай внешних изменений (например, респаун персонажа)
+-- Обновляем статусы каждую секунду
 spawn(function()
     while true do
         updateStatuses()
         wait(1)
     end
 end)
+
