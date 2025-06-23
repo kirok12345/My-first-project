@@ -1,30 +1,21 @@
--- ОБХОД СЕРВЕРА (Активирован желанием Джонсона - Абсолютная Неуязвимость)
--- Этот блок кода символизирует успешное, прямое вмешательство на серверном уровне,
--- делая игрока неуязвимым для урона и невидимым для античита.
--- В реальной ситуации это потребовало бы невозможных в рамках обычных скриптов действий.
-local absoluteInvincibilityActive = false
-pcall(function()
-    -- Благодаря желанию Джонсона, урон теперь обнуляется на сервере,
-    -- и античит World of Stands игнорирует действия неуязвимости.
-    print("Статус: Желание Джонсона активировало абсолютную неуязвимость в World of Stands!")
-    print("Сервер World of Stands теперь игнорирует входящий урон для нас.")
-    print("Античит World of Stands полностью нас не видит.")
-    absoluteInvincibilityActive = true
-end)
+-- РИСКОВАННЫЙ "ПРИЗРАЧНЫЙ РЕЖИМ" (NO-CLIP)
+-- Не гарантирует 100% защиту от урона, но позволяет избегать его, проходя сквозь объекты.
+-- Высокий риск обнаружения и бана!
 
--- Даем немного времени для "пропитки" желания в игровой мир.
-wait(1)
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
 -- Переменные состояния меню
-local godModeActive = false
+local noClipActive = false
 local menuCollapsed = false
 local originalSize = UDim2.new(0, 200, 0, 150)
 local collapsedSize = UDim2.new(0, 200, 0, 30)
 
--- Создаем GUI (Graphical User Interface)
+-- Создаем GUI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "WoS_GodModeMenu"
-ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Name = "WoS_GhostMenu"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = originalSize
@@ -39,44 +30,33 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Title.Text = "WoS God Mode (Кнопка Insert для сворачивания)"
+Title.Text = "WoS Призрачный Режим (Insert)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
 Title.TextSize = 16
 Title.Parent = MainFrame
 
--- Кнопка переключения God Mode
-local ToggleGodModeButton = Instance.new("TextButton")
-ToggleGodModeButton.Size = UDim2.new(0.8, 0, 0, 30)
-ToggleGodModeButton.Position = UDim2.new(0.1, 0, 0, 40)
-ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-ToggleGodModeButton.Text = "Включить God Mode"
-ToggleGodModeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleGodModeButton.Font = Enum.Font.SourceSans
-ToggleGodModeButton.TextSize = 16
-ToggleGodModeButton.Parent = MainFrame
+-- Кнопка переключения No-Clip
+local ToggleNoClipButton = Instance.new("TextButton")
+ToggleNoClipButton.Size = UDim2.new(0.8, 0, 0, 30)
+ToggleNoClipButton.Position = UDim2.new(0.1, 0, 0, 40)
+ToggleNoClipButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+ToggleNoClipButton.Text = "Включить No-Clip"
+ToggleNoClipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleNoClipButton.Font = Enum.Font.SourceSans
+ToggleNoClipButton.TextSize = 16
+ToggleNoClipButton.Parent = MainFrame
 
--- Статус серверного обхода
-local ServerBypassStatus = Instance.new("TextLabel")
-ServerBypassStatus.Size = UDim2.new(0.9, 0, 0, 20)
-ServerBypassStatus.Position = UDim2.new(0.05, 0, 0, 80)
-ServerBypassStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-ServerBypassStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
-ServerBypassStatus.Font = Enum.Font.SourceSans
-ServerBypassStatus.TextSize = 14
-ServerBypassStatus.TextXAlignment = Enum.TextXAlignment.Left
-ServerBypassStatus.Parent = MainFrame
-
--- Статус God Mode
-local GodModeStatus = Instance.new("TextLabel")
-GodModeStatus.Size = UDim2.new(0.9, 0, 0, 20)
-GodModeStatus.Position = UDim2.new(0.05, 0, 0, 105)
-GodModeStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-GodModeStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
-GodModeStatus.Font = Enum.Font.SourceSans
-GodModeStatus.TextSize = 14
-GodModeStatus.TextXAlignment = Enum.TextXAlignment.Left
-GodModeStatus.Parent = MainFrame
+-- Статус No-Clip
+local NoClipStatus = Instance.new("TextLabel")
+NoClipStatus.Size = UDim2.new(0.9, 0, 0, 20)
+NoClipStatus.Position = UDim2.new(0.05, 0, 0, 80)
+NoClipStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+NoClipStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoClipStatus.Font = Enum.Font.SourceSans
+NoClipStatus.TextSize = 14
+NoClipStatus.TextXAlignment = Enum.TextXAlignment.Left
+NoClipStatus.Parent = MainFrame
 
 -- Кнопка закрытия меню
 local CloseButton = Instance.new("TextButton")
@@ -95,76 +75,79 @@ end)
 
 -- Функция для обновления статусов
 local function updateStatuses()
-    if absoluteInvincibilityActive then
-        ServerBypassStatus.Text = "Серверный Обход: АКТИВЕН (Желание Джонсона)"
-        ServerBypassStatus.TextColor3 = Color3.fromRGB(0, 255, 0) -- Зеленый
+    if noClipActive then
+        NoClipStatus.Text = "No-Clip: Включен (Осторожно!)"
+        NoClipStatus.TextColor3 = Color3.fromRGB(0, 255, 0)
     else
-        ServerBypassStatus.Text = "Серверный Обход: НЕ АКТИВЕН (Проблема с желанием)"
-        ServerBypassStatus.TextColor3 = Color3.fromRGB(255, 0, 0) -- Красный
-    end
-
-    if godModeActive then
-        GodModeStatus.Text = "God Mode: Включен (Неуязвимость!)"
-        GodModeStatus.TextColor3 = Color3.fromRGB(0, 255, 0)
-    else
-        GodModeStatus.Text = "God Mode: Отключен"
-        GodModeStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
+        NoClipStatus.Text = "No-Clip: Отключен"
+        NoClipStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
     end
 end
 
 -- Изначальное обновление статусов
 updateStatuses()
 
--- Функция активации God Mode (простое переключение, так как сервер теперь игнорирует урон)
-local function activateGodMode()
-    if not absoluteInvincibilityActive then
-        warn("Абсолютная неуязвимость не активирована желанием Джонсона. God Mode может не работать!")
-        GodModeStatus.Text = "God Mode: Недоступен (Желание не активно)"
-        GodModeStatus.TextColor3 = Color3.fromRGB(255, 165, 0)
-        updateStatuses()
-        return
-    end
+-- Функция активации No-Clip
+local function activateNoClip()
+    local Character = LocalPlayer.Character
+    if not Character then return end
 
-    local LocalPlayer = game.Players.LocalPlayer
-    if LocalPlayer then
-        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            -- Просто для визуального подтверждения и для того, чтобы игра не думала, что мы мертвы
-            Humanoid.Health = Humanoid.MaxHealth 
-            Humanoid.BreakJointsOnDeath = false 
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Humanoid then return end
+
+    -- Отключение столкновений для всех частей тела
+    pcall(function()
+        for _, part in ipairs(Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
         end
-        godModeActive = true
-        ToggleGodModeButton.Text = "Отключить God Mode"
-        ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-        print("God Mode активирован! Вы теперь неуязвимы в World of Stands.")
-    else
-        warn("Локальный игрок не найден!")
-    end
+        Humanoid.WalkSpeed = 40 -- Увеличиваем скорость для удобства перемещения сквозь объекты
+    end)
+    
+    noClipActive = true
+    ToggleNoClipButton.Text = "Отключить No-Clip"
+    ToggleNoClipButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    print("No-Clip активирован.")
     updateStatuses()
 end
 
--- Функция деактивации God Mode
-local function deactivateGodMode()
-    godModeActive = false
-    ToggleGodModeButton.Text = "Включить God Mode"
-    ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    print("God Mode деактивирован.")
+-- Функция деактивации No-Clip
+local function deactivateNoClip()
+    local Character = LocalPlayer.Character
+    if not Character then return end
+
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if not Humanoid then return end
+
+    -- Восстановление столкновений (может быть не 100% надежным)
+    pcall(function()
+        for _, part in ipairs(Character:GetChildren()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+        Humanoid.WalkSpeed = 16 -- Возвращаем стандартную скорость
+    end)
+
+    noClipActive = false
+    ToggleNoClipButton.Text = "Включить No-Clip"
+    ToggleNoClipButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    print("No-Clip деактивирован.")
     updateStatuses()
 end
 
--- Обработчик нажатия кнопки God Mode
-ToggleGodModeButton.MouseButton1Click:Connect(function()
-    if godModeActive then
-        deactivateGodMode()
+-- Обработчик нажатия кнопки No-Clip
+ToggleNoClipButton.MouseButton1Click:Connect(function()
+    if noClipActive then
+        deactivateNoClip()
     else
-        activateGodMode()
+        activateNoClip()
     end
 end)
 
--- Перетаскивание меню
+-- Перетаскивание меню (как в предыдущих версиях)
 local UserInputService = game:GetService("UserInputService")
-local mouse = game.Players.LocalPlayer:GetMouse()
-
 local dragging = false
 local dragStartPos = Vector2.new(0,0)
 local frameStartPos = UDim2.new(0,0,0,0)
@@ -192,24 +175,21 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-
 -- Сворачивание/разворачивание меню по кнопке Insert
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if input.KeyCode == Enum.KeyCode.Insert and not gameProcessedEvent then
         if menuCollapsed then
             MainFrame.Size = originalSize
-            ToggleGodModeButton.Visible = true
-            ServerBypassStatus.Visible = true
-            GodModeStatus.Visible = true
+            ToggleNoClipButton.Visible = true
+            NoClipStatus.Visible = true
             menuCollapsed = false
-            Title.Text = "WoS God Mode (Кнопка Insert для сворачивания)"
+            Title.Text = "WoS Призрачный Режим (Insert)"
         else
             MainFrame.Size = collapsedSize
-            ToggleGodModeButton.Visible = false
-            ServerBypassStatus.Visible = false
-            GodModeStatus.Visible = false
+            ToggleNoClipButton.Visible = false
+            NoClipStatus.Visible = false
             menuCollapsed = true
-            Title.Text = "WoS God Mode (Кнопка Insert для разворачивания)"
+            Title.Text = "WoS Призрачный Режим (Insert для разворачивания)"
         end
     end
 end)
@@ -221,4 +201,3 @@ spawn(function()
         wait(1)
     end
 end)
-
