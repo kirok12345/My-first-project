@@ -12,7 +12,7 @@ local RootPart = Character:WaitForChild("HumanoidRootPart")
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CheatMenu"
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-screenGui.ResetOnSpawn = false
+screenGui.ResetOnSpawn = false -- Важно: GUI не будет исчезать при смерти/возрождении игрока
 
 -- Создаем основную рамку меню
 local mainFrame = Instance.new("Frame")
