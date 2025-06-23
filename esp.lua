@@ -1,34 +1,46 @@
--- LocalScript (внутри StarterPlayerScripts)
+-- ServerScript (внутри ServerScriptService)
 
-local player = game.Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "ImmortalityMenu"
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local immortalityStatusEvent = Instance.new("RemoteEvent")
+immortalityStatusEvent.Name = "ImmortalityStatus"
+immortalityStatusEvent.Parent = ReplicatedStorage
 
--- Создание кнопки для активации бессмертия
-local immortalityButton = Instance.new("TextButton")
-immortalityButton.Parent = screenGui
-immortalityButton.Size = UDim2.new(0, 200, 0, 50)
-immortalityButton.Position = UDim2.new(0.5, -100, 0.8, -25)
-immortalityButton.Text = "Включить бессмертие"
-immortalityButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+-- Таблица для отслеживания бессмертия игроков
+local immortalityPlayers = {}
 
-local immortalityEnabled = false
-
--- Функция для активации/деактивации бессмертия
-local function toggleImmortality()
-    immortalityEnabled = not immortalityEnabled
-
-    if immortalityEnabled then
-        immortalityButton.Text = "Выключить бессмертие"
-        -- Оповещаем сервер о включении бессмертия
-        game.ReplicatedStorage.ImmortalityStatus:FireServer(true)
+-- Функция для включения/выключения бессмертия
+local function onImmortalityStatusChanged(player, isImmortal)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    if isImmortal then
+        -- Включаем бессмертие
+        immortalityPlayers[player.UserId] = true
+        -- Периодически восстанавливаем здоровье до максимума
+        spawn(function()
+            while immortalityPlayers[player.UserId] do
+                if humanoid.Health < humanoid.MaxHealth then
+                    humanoid.Health = humanoid.MaxHealth
+                end
+                wait(1)  -- проверяем каждую секунду
+            end
+        end)
     else
-        immortalityButton.Text = "Включить бессмертие"
-        -- Оповещаем сервер о выключении бессмертия
-        game.ReplicatedStorage.ImmortalityStatus:FireServer(false)
+        -- Выключаем бессмертие
+        immortalityPlayers[player.UserId] = false
     end
 end
 
--- Подключаемся к событию нажатия кнопки
-immortalityButton.MouseButton1Click:Connect(toggleImmortality)
+-- Защита от манипуляций
+game:GetService("Players").PlayerAdded:Connect(function(player)
+    -- Когда новый игрок появляется, устанавливаем его бессмертие в выключенное состояние
+    immortalityPlayers[player.UserId] = false
+end)
+
+-- Обработка события от клиента
+immortalityStatusEvent.OnServerEvent:Connect(function(player, isImmortal)
+    -- Проверяем, что игрок не пытается манипулировать
+    if player and player.Character and player:FindFirstChild("Humanoid") then
+        onImmortalityStatusChanged(player, isImmortal)
+    end
+end)
