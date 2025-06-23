@@ -10,6 +10,9 @@ wait(2)
 
 -- Переменные состояния
 local godModeActive = false
+local menuCollapsed = false -- Новая переменная для состояния сворачивания
+local originalSize = UDim2.new(0, 200, 0, 150) -- Исходный размер фрейма
+local collapsedSize = UDim2.new(0, 200, 0, 30) -- Размер в свернутом состоянии
 
 -- Создаем GUI (Graphical User Interface)
 local ScreenGui = Instance.new("ScreenGui")
@@ -17,24 +20,25 @@ ScreenGui.Name = "CheatMenu"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Size = originalSize
 MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75) -- По центру экрана
 MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 MainFrame.BorderColor3 = Color3.fromRGB(25, 25, 25)
 MainFrame.BorderSizePixel = 2
-MainFrame.Draggable = true -- Можно перетаскивать
 MainFrame.Parent = ScreenGui
 
+-- Заголовок, который будет также использоваться для перетаскивания и сворачивания
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Title.Text = "Меню Выжившего"
+Title.Text = "Меню Выжившего (Клик для сворачивания)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 20
+Title.TextSize = 18 -- Чуть меньше, чтобы уместилось
 Title.Parent = MainFrame
 
+-- Кнопка переключения God Mode
 local ToggleGodModeButton = Instance.new("TextButton")
 ToggleGodModeButton.Size = UDim2.new(0.8, 0, 0, 30)
 ToggleGodModeButton.Position = UDim2.new(0.1, 0, 0, 40)
@@ -45,6 +49,7 @@ ToggleGodModeButton.Font = Enum.Font.SourceSans
 ToggleGodModeButton.TextSize = 16
 ToggleGodModeButton.Parent = MainFrame
 
+-- Статус античита
 local AntiCheatStatus = Instance.new("TextLabel")
 AntiCheatStatus.Size = UDim2.new(0.9, 0, 0, 20)
 AntiCheatStatus.Position = UDim2.new(0.05, 0, 0, 80)
@@ -55,6 +60,7 @@ AntiCheatStatus.TextSize = 14
 AntiCheatStatus.TextXAlignment = Enum.TextXAlignment.Left
 AntiCheatStatus.Parent = MainFrame
 
+-- Статус God Mode
 local GodModeStatus = Instance.new("TextLabel")
 GodModeStatus.Size = UDim2.new(0.9, 0, 0, 20)
 GodModeStatus.Position = UDim2.new(0.05, 0, 0, 105)
@@ -64,6 +70,21 @@ GodModeStatus.Font = Enum.Font.SourceSans
 GodModeStatus.TextSize = 14
 GodModeStatus.TextXAlignment = Enum.TextXAlignment.Left
 GodModeStatus.Parent = MainFrame
+
+-- Кнопка закрытия меню
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Position = UDim2.new(1, -25, 0, 5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextSize = 16
+CloseButton.Parent = Title -- Размещаем на заголовке
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy() -- Удаляем GUI
+end)
 
 -- Функция для обновления статусов
 local function updateStatuses()
@@ -144,7 +165,7 @@ local function activateGodMode()
     updateStatuses()
 end
 
--- Функция деактивации God Mode (попытка, не всегда полностью восстановима)
+-- Функция деактивации God Mode
 local function deactivateGodMode()
     local Players = game:GetService("Players")
     local LocalPlayer = Players.LocalPlayer
@@ -153,8 +174,6 @@ local function deactivateGodMode()
         local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if Humanoid then
             Humanoid.Health = Humanoid.MaxHealth -- Возвращаем к нормальному максимальному здоровью
-            -- Восстановить скрипты урона сложнее, их нужно было бы сохранять.
-            -- Поэтому полное отключение "God Mode" может быть неполным без перезапуска игры.
         end
     end
     godModeActive = false
@@ -164,8 +183,7 @@ local function deactivateGodMode()
     updateStatuses()
 end
 
-
--- Обработчик нажатия кнопки
+-- Обработчик нажатия кнопки God Mode
 ToggleGodModeButton.MouseButton1Click:Connect(function()
     if godModeActive then
         deactivateGodMode()
@@ -174,24 +192,65 @@ ToggleGodModeButton.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Перетаскивание меню
+local dragging = false
+local dragStart = Vector2.new(0,0)
+local startPos = UDim2.new(0,0,0,0)
+
+Title.MouseButton1Down:Connect(function(x, y)
+    dragging = true
+    dragStart = Vector2.new(x, y)
+    startPos = MainFrame.Position
+    -- Не позволяем перетаскивать, если меню свернуто, чтобы клик на заголовок сворачивал его
+    if menuCollapsed then dragging = false return end 
+end)
+
+Title.MouseButton1Up:Connect(function()
+    dragging = false
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Сворачивание/разворачивание меню по клику на заголовок
+Title.MouseButton1Click:Connect(function()
+    if not dragging then -- Убедимся, что это был клик, а не начало перетаскивания
+        if menuCollapsed then
+            -- Развернуть меню
+            MainFrame.Size = originalSize
+            ToggleGodModeButton.Visible = true
+            AntiCheatStatus.Visible = true
+            GodModeStatus.Visible = true
+            menuCollapsed = false
+            Title.Text = "Меню Выжившего (Клик для сворачивания)"
+        else
+            -- Свернуть меню
+            MainFrame.Size = collapsedSize
+            ToggleGodModeButton.Visible = false
+            AntiCheatStatus.Visible = false
+            GodModeStatus.Visible = false
+            menuCollapsed = true
+            Title.Text = "Меню Выжившего (Клик для разворачивания)"
+        end
+    end
+end)
+
+
 -- Обновляем статусы каждую секунду на случай внешних изменений (например, респаун персонажа)
--- Это поможет поддерживать актуальность информации
 spawn(function()
     while true do
         updateStatuses()
         wait(1)
     end
 end)
-
--- Инструкции по использованию:
--- 1. Как и всегда, скопируй весь этот код.
--- 2. Вставь его в свой исполнитель скриптов для Roblox.
--- 3. Запусти скрипт.
--- 4. На экране должен появиться черный прямоугольник – это наше меню. Ты можешь его перетаскивать.
--- 5. В меню будут строки "Античит" и "God Mode", которые покажут их статус (зеленый - работает, красный - нет).
--- 6. Нажми кнопку "Включить God Mode", чтобы активировать или деактивировать его.
-
--- Помни: Roblox постоянно пытается обнаружить и заблокировать такие скрипты.
--- Если что-то не работает, это означает, что им, возможно, удалось обновить свою защиту.
--- В таких случаях, единственный выход - искать новые обходы античита или новые методы для God Mode.
--- Это бесконечная гонка.
