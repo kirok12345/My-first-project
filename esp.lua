@@ -1,187 +1,243 @@
 -- Это локальный скрипт, он должен находиться в StarterPlayerScripts или StarterGui
 -- Локальные скрипты выполняются на клиенте (компьютере игрока)
 
--- Создаем ScreenGui, который будет содержать все наши элементы GUI
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "UniversalGUI"
-screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-screenGui.ResetOnSpawn = false -- Важно: GUI не будет исчезать при смерти/возрождении игрока
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- Создаем основную рамку (Frame) для нашего окна GUI
+-- Создаем ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CheatMenu"
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Создаем основную рамку меню
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainPanel"
-mainFrame.Size = UDim2.new(0, 300, 0, 250) -- Фиксированный размер 300x250 пикселей
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -125) -- Центрируем по экрану (0.5 - половина, а -150/-125 - смещение на половину ширины/высоты для точного центрирования)
-mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- Темно-серый фон
-mainFrame.BorderColor3 = Color3.fromRGB(70, 70, 70) -- Более светлая рамка
+mainFrame.Name = "MenuFrame"
+mainFrame.Size = UDim2.new(0, 250, 0, 350) -- Размер 250x350 пикселей
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -175) -- Центрируем по экрану
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Темный фон
+mainFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
 mainFrame.BorderSizePixel = 2
+mainFrame.Active = true -- Для перетаскивания
+mainFrame.Draggable = true -- Для перетаскивания
 mainFrame.Parent = screenGui
 
--- Создаем верхнюю панель для перетаскивания и заголовка
-local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
-titleBar.Size = UDim2.new(1, 0, 0, 30) -- 100% ширины родителя, высота 30 пикселей
-titleBar.Position = UDim2.new(0, 0, 0, 0)
-titleBar.BackgroundColor3 = Color3.fromRGB(60, 60, 60) -- Чуть светлее, чем основной фон
-titleBar.Parent = mainFrame
+-- Создаем рамку для вкладок (слева)
+local tabButtonsFrame = Instance.new("Frame")
+tabButtonsFrame.Name = "TabButtons"
+tabButtonsFrame.Size = UDim2.new(0, 80, 1, 0) -- Ширина 80, высота 100% от родителя
+tabButtonsFrame.Position = UDim2.new(0, 0, 0, 0)
+tabButtonsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Еще темнее фон
+tabButtonsFrame.BorderSizePixel = 0
+tabButtonsFrame.Parent = mainFrame
 
--- Добавляем текст заголовка
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 1, 0)
-titleLabel.Position = UDim2.new(0, 0, 0, 0)
-titleLabel.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-titleLabel.BackgroundTransparency = 1 -- Прозрачный фон, чтобы видеть фон TitleBar
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Белый текст
-titleLabel.Text = "Мое крутое GUI"
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.TextSize = 20
-titleLabel.TextScaled = false -- Не масштабируем, чтобы размер был фиксированным
-titleLabel.Parent = titleBar
+-- Создаем рамку для содержимого вкладок (справа)
+local tabContentFrame = Instance.new("Frame")
+tabContentFrame.Name = "TabContent"
+tabContentFrame.Size = UDim2.new(1, -80, 1, 0) -- 100% ширины минус 80 пикселей для кнопок, 100% высоты
+tabContentFrame.Position = UDim2.new(0, 80, 0, 0) -- Смещаем на ширину кнопок
+tabContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- Чуть светлее фон
+tabContentFrame.BorderSizePixel = 0
+tabContentFrame.Parent = mainFrame
 
--- Логика перетаскивания окна GUI
-local dragging = false
-local dragStart = Vector2.new(0, 0)
-local initialPosition = UDim2.new(0, 0, 0, 0)
+-- Функция для создания кнопки вкладки
+local function createTabButton(name, yPosition)
+    local button = Instance.new("TextButton")
+    button.Name = name .. "TabButton"
+    button.Size = UDim2.new(1, 0, 0, 40) -- Ширина 100%, высота 40 пикселей
+    button.Position = UDim2.new(0, 0, 0, yPosition)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(200, 200, 200)
+    button.Text = name
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 16
+    button.Parent = tabButtonsFrame
+    return button
+end
 
-titleBar.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        initialPosition = mainFrame.Position
+-- Функция для создания панели содержимого вкладки
+local function createTabPanel(name)
+    local panel = Instance.new("Frame")
+    panel.Name = name .. "Panel"
+    panel.Size = UDim2.new(1, 0, 1, 0)
+    panel.Position = UDim2.new(0, 0, 0, 0)
+    panel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    panel.BorderSizePixel = 0
+    panel.Visible = false -- Изначально невидима
+    panel.Parent = tabContentFrame
+    return panel
+end
+
+-- Создаем вкладки и их панели
+local tabs = {}
+local currentActivePanel = nil
+
+local function activateTab(panel)
+    if currentActivePanel then
+        currentActivePanel.Visible = false
     end
+    panel.Visible = true
+    currentActivePanel = panel
+end
+
+-- Вкладка "Player"
+local playerTabButton = createTabButton("Player", 0)
+local playerPanel = createTabPanel("Player")
+tabs["Player"] = {button = playerTabButton, panel = playerPanel}
+
+playerTabButton.MouseButton1Click:Connect(function()
+    activateTab(playerPanel)
 end)
 
-titleBar.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
+-- Создаем другие вкладки (пока пустые, для демонстрации)
+local movementTabButton = createTabButton("Movement", 40)
+local movementPanel = createTabPanel("Movement")
+tabs["Movement"] = {button = movementTabButton, panel = movementPanel}
+
+movementTabButton.MouseButton1Click:Connect(function()
+    activateTab(movementPanel)
 end)
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local delta = input.Position - dragStart
-        mainFrame.Position = UDim2.new(initialPosition.X.Scale, initialPosition.X.Offset + delta.X,
-                                        initialPosition.Y.Scale, initialPosition.Y.Offset + delta.Y)
-    end
+local worldTabButton = createTabButton("World", 80)
+local worldPanel = createTabPanel("World")
+tabs["World"] = {button = worldTabButton, panel = worldPanel}
+
+worldTabButton.MouseButton1Click:Connect(function()
+    activateTab(worldPanel)
 end)
 
+-- Активируем вкладку "Player" по умолчанию
+activateTab(playerPanel)
 
--- Добавляем метку для отображения вводимого текста
-local displayLabel = Instance.new("TextLabel")
-displayLabel.Name = "DisplayLabel"
-displayLabel.Size = UDim2.new(0.9, 0, 0, 40) -- Ширина 90%, высота 40 пикселей
-displayLabel.Position = UDim2.new(0.05, 0, 0, 40) -- Отступ 5% от левого края, 40 пикселей от верха рамки
-displayLabel.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-displayLabel.TextColor3 = Color3.fromRGB(200, 200, 200) -- Светло-серый текст
-displayLabel.Text = "Привет, мир!"
-displayLabel.Font = Enum.Font.SourceSans
-displayLabel.TextSize = 18
-displayLabel.TextWrapped = true
-displayLabel.TextXAlignment = Enum.TextXAlignment.Center -- Выравнивание текста по центру
-displayLabel.TextYAlignment = Enum.TextYAlignment.Center -- Выравнивание текста по центру
-displayLabel.Parent = mainFrame
+------------------------------------------------------------------------------------------------------------------------
+-- ФУНКЦИИ ДЛЯ ВКЛАДКИ "PLAYER"
+------------------------------------------------------------------------------------------------------------------------
 
--- Добавляем текстовое поле для ввода
-local inputTextBox = Instance.new("TextBox")
-inputTextBox.Name = "InputBox"
-inputTextBox.Size = UDim2.new(0.9, 0, 0, 30)
-inputTextBox.Position = UDim2.new(0.05, 0, 0, 90) -- Ниже метки
-inputTextBox.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
-inputTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-inputTextBox.PlaceholderText = "Введи что-нибудь здесь..."
-inputTextBox.Text = ""
-inputTextBox.Font = Enum.Font.SourceSans
-inputTextBox.TextSize = 16
-inputTextBox.TextXAlignment = Enum.TextXAlignment.Left -- Выравнивание текста по левому краю
-inputTextBox.Parent = mainFrame
+-- Функция Fly (полёт)
+local isFlying = false
+local flySpeed = 100 -- Скорость полета, можно настроить
 
--- Добавляем кнопку для обновления текста и изменения цвета
-local updateButton = Instance.new("TextButton")
-updateButton.Name = "UpdateButton"
-updateButton.Size = UDim2.new(0.4, 0, 0, 30) -- Ширина 40%, высота 30 пикселей
-updateButton.Position = UDim2.new(0.05, 0, 0, 130) -- Ниже текстового поля
-updateButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215) -- Синяя кнопка
-updateButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-updateButton.Text = "Обновить текст"
-updateButton.Font = Enum.Font.SourceSansBold
-updateButton.TextSize = 18
-updateButton.Parent = mainFrame
-
--- Добавляем ползунок (Slider) для изменения прозрачности
-local transparencySlider = Instance.new("TextButton") -- Используем TextButton как основу для слайдера
-transparencySlider.Name = "TransparencySlider"
-transparencySlider.Size = UDim2.new(0.9, 0, 0, 20)
-transparencySlider.Position = UDim2.new(0.05, 0, 0, 180) -- Ниже кнопки
-transparencySlider.BackgroundColor3 = Color3.fromRGB(90, 90, 90) -- Цвет трека слайдера
-transparencySlider.Text = "" -- Без текста
-transparencySlider.Parent = mainFrame
-
-local sliderHandle = Instance.new("Frame") -- Ручка ползунка
-sliderHandle.Name = "SliderHandle"
-sliderHandle.Size = UDim2.new(0, 10, 1, 0) -- Ширина 10 пикселей, высота 100% от родителя
-sliderHandle.Position = UDim2.new(0, 0, 0, 0) -- Изначально слева
-sliderHandle.BackgroundColor3 = Color3.fromRGB(0, 180, 255) -- Голубой цвет ручки
-sliderHandle.Parent = transparencySlider
-
-local isDraggingSlider = false
-local minX = 0
-local maxX = transparencySlider.AbsoluteSize.X - sliderHandle.AbsoluteSize.X
-
-sliderHandle.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingSlider = true
+local function toggleFly()
+    if not Character or not Humanoid or not RootPart then
+        warn("Character components not found for Fly function.")
+        return
     end
-end)
 
-sliderHandle.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        isDraggingSlider = false
-    end
-end)
+    isFlying = not isFlying
 
-game:GetService("UserInputService").InputChanged:Connect(function(input)
-    if isDraggingSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local mouseX = input.Position.X
-        local sliderX = transparencySlider.AbsolutePosition.X
-        local newX = math.clamp(mouseX - sliderX - sliderHandle.Size.X.Offset / 2, minX, maxX)
+    if isFlying then
+        -- Отключаем гравитацию для полета
+        Humanoid.Sit = true -- Сажаем гуманоида, чтобы отключить некоторые физические взаимодействия
+        RootPart.Anchored = true -- Закрепляем RootPart
+        Humanoid.PlatformStand = true -- Дополнительно для лучшего контроля
+        
+        -- Создаем или получаем BodyVelocity для управления полетом
+        local bodyVel = Instance.new("BodyVelocity")
+        bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge) -- Максимальная сила
+        bodyVel.Parent = RootPart
 
-        sliderHandle.Position = UDim2.new(0, newX, 0, 0)
+        -- Отслеживаем ввод для управления полетом
+        local connection = nil
+        connection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+            if gameProcessedEvent then return end
 
-        -- Вычисляем прозрачность на основе положения ручки
-        local transparency = newX / maxX
-        mainFrame.BackgroundTransparency = transparency
-        titleBar.BackgroundTransparency = transparency
-        displayLabel.BackgroundTransparency = transparency
-        inputTextBox.BackgroundTransparency = transparency
-        updateButton.BackgroundTransparency = transparency
-        transparencySlider.BackgroundTransparency = transparency
-        sliderHandle.BackgroundTransparency = transparency
-    end
-end)
+            local currentVel = Vector3.new(0, 0, 0)
+            local camera = workspace.CurrentCamera
+            local cameraCFrame = camera.CFrame
 
+            if input.KeyCode == Enum.KeyCode.W then
+                currentVel = currentVel + cameraCFrame.LookVector * flySpeed
+            elseif input.KeyCode == Enum.KeyCode.S then
+                currentVel = currentVel - cameraCFrame.LookVector * flySpeed
+            elseif input.KeyCode == Enum.KeyCode.A then
+                currentVel = currentVel - cameraCFrame.RightVector * flySpeed
+            elseif input.KeyCode == Enum.KeyCode.D then
+                currentVel = currentVel + cameraCFrame.RightVector * flySpeed
+            elseif input.KeyCode == Enum.KeyCode.Space then
+                currentVel = currentVel + Vector3.new(0, flySpeed, 0)
+            elseif input.KeyCode == Enum.KeyCode.Q then
+                currentVel = currentVel - Vector3.new(0, flySpeed, 0)
+            end
+            bodyVel.Velocity = currentVel
+        end)
 
--- Функционал кнопки
-local currentTextColorIndex = 1
-local textColors = {
-    Color3.fromRGB(255, 255, 255), -- Белый
-    Color3.fromRGB(255, 0, 0),     -- Красный
-    Color3.fromRGB(0, 255, 0),     -- Зеленый
-    Color3.fromRGB(0, 0, 255)      -- Синий
-}
+        -- Отключаем отслеживание ввода, когда полёт выключается
+        RootPart.AncestryChanged:Connect(function()
+            if not RootPart.Parent and connection then
+                connection:Disconnect()
+            end
+        })
 
-updateButton.MouseButton1Click:Connect(function()
-    -- Обновляем текст метки на основе введенного в текстовое поле
-    if inputTextBox.Text ~= "" then
-        displayLabel.Text = "Введено: " .. inputTextBox.Text
+        -- Обновляем текст кнопки
+        flyButton.Text = "Fly: ON"
+        flyButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Зеленый
     else
-        displayLabel.Text = "Пожалуйста, введите текст!"
-    end
+        -- Возвращаем нормальное состояние
+        if RootPart:FindFirstChildOfClass("BodyVelocity") then
+            RootPart:FindFirstChildOfClass("BodyVelocity"):Destroy()
+        end
+        Humanoid.Sit = false
+        RootPart.Anchored = false
+        Humanoid.PlatformStand = false
 
-    -- Изменяем цвет текста метки по кругу
-    currentTextColorIndex = currentTextColorIndex + 1
-    if currentTextColorIndex > #textColors then
-        currentTextColorIndex = 1
+        -- Обновляем текст кнопки
+        flyButton.Text = "Fly: OFF"
+        flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красный
     end
-    displayLabel.TextColor3 = textColors[currentTextColorIndex]
+end
+
+-- Кнопка Fly
+local flyButton = Instance.new("TextButton")
+flyButton.Name = "FlyToggle"
+flyButton.Size = UDim2.new(0.9, 0, 0, 35) -- Ширина 90%, высота 35 пикселей
+flyButton.Position = UDim2.new(0.05, 0, 0, 10) -- Отступ 5% от левого края, 10 пикселей от верха панели
+flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красный (выключен)
+flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+flyButton.Text = "Fly: OFF"
+flyButton.Font = Enum.Font.SourceSansBold
+flyButton.TextSize = 18
+flyButton.Parent = playerPanel
+
+flyButton.MouseButton1Click:Connect(toggleFly)
+
+
+-- Кнопка Teleport to me (телепортация к себе)
+local teleportButton = Instance.new("TextButton")
+teleportButton.Name = "TeleportToMe"
+teleportButton.Size = UDim2.new(0.9, 0, 0, 35)
+teleportButton.Position = UDim2.new(0.05, 0, 0, 55) -- Ниже кнопки Fly
+teleportButton.BackgroundColor3 = Color3.fromRGB(0, 100, 150) -- Синий
+teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleportButton.Text = "Teleport to me"
+teleportButton.Font = Enum.Font.SourceSansBold
+teleportButton.TextSize = 18
+teleportButton.Parent = playerPanel
+
+teleportButton.MouseButton1Click:Connect(function()
+    -- Получаем текущую позицию RootPart игрока
+    local currentPos = RootPart.CFrame.Position
+    -- Телепортируем игрока на эту же позицию, но чуть выше (чтобы не застрять в полу)
+    RootPart.CFrame = CFrame.new(currentPos.X, currentPos.Y + 5, currentPos.Z)
+    -- Сбрасываем любую скорость
+    RootPart.Velocity = Vector3.new(0,0,0)
+    RootPart.RotVelocity = Vector3.new(0,0,0)
+    print("Teleported player to self's current position (slightly above).") -- Для отладки в окне Output
+end)
+
+
+-- Обработка возрождения персонажа для функций, зависящих от него
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = Character:WaitForChild("Humanoid")
+    RootPart = Character:WaitForChild("HumanoidRootPart")
+    -- Если был включен полет, выключаем его при возрождении, чтобы избежать багов
+    if isFlying then
+        isFlying = false
+        flyButton.Text = "Fly: OFF"
+        flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    end
 end)
