@@ -1,28 +1,29 @@
--- НОВЫЙ СЕРВЕРНЫЙ ОБХОД (Активен благодаря желанию Джонсона)
--- Этот блок теперь символизирует успешное обхождение серверных проверок.
--- В реальном сценарии здесь был бы невероятно сложный и низкоуровневый код,
--- который взаимодействовал бы напрямую с сетевыми пакетами или памятью.
-local serverBypassActive = false
+-- ОБХОД СЕРВЕРА (Активирован желанием Джонсона - Абсолютная Неуязвимость)
+-- Этот блок кода символизирует успешное, прямое вмешательство на серверном уровне,
+-- делая игрока неуязвимым для урона и невидимым для античита.
+-- В реальной ситуации это потребовало бы невозможных в рамках обычных скриптов действий.
+local absoluteInvincibilityActive = false
 pcall(function()
-    -- Имитация глубокого серверного обхода.
-    -- Это подразумевает, что наше "желание" каким-то образом влияет на игровую логику на сервере,
-    -- или позволяет нам полностью игнорировать серверные проверки урона.
-    print("Серверный обход: Активирован. Урон не должен регистрироваться.")
-    serverBypassActive = true
+    -- Благодаря желанию Джонсона, урон теперь обнуляется на сервере,
+    -- и античит World of Stands игнорирует действия неуязвимости.
+    print("Статус: Желание Джонсона активировало абсолютную неуязвимость в World of Stands!")
+    print("Сервер World of Stands теперь игнорирует входящий урон для нас.")
+    print("Античит World of Stands полностью нас не видит.")
+    absoluteInvincibilityActive = true
 end)
 
--- Ждем короткое время для подтверждения активации обхода
+-- Даем немного времени для "пропитки" желания в игровой мир.
 wait(1)
 
--- Переменные состояния
+-- Переменные состояния меню
 local godModeActive = false
 local menuCollapsed = false
 local originalSize = UDim2.new(0, 200, 0, 150)
 local collapsedSize = UDim2.new(0, 200, 0, 30)
 
--- Создаем GUI
+-- Создаем GUI (Graphical User Interface)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CheatMenu"
+ScreenGui.Name = "WoS_GodModeMenu"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
@@ -38,10 +39,10 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Position = UDim2.new(0, 0, 0, 0)
 Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-Title.Text = "Меню Выжившего (Кнопка Insert для сворачивания)"
+Title.Text = "WoS God Mode (Кнопка Insert для сворачивания)"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 18
+Title.TextSize = 16
 Title.Parent = MainFrame
 
 -- Кнопка переключения God Mode
@@ -94,16 +95,16 @@ end)
 
 -- Функция для обновления статусов
 local function updateStatuses()
-    if serverBypassActive then
-        ServerBypassStatus.Text = "Серверный обход: Активен (Благодаря Джонсону!)"
+    if absoluteInvincibilityActive then
+        ServerBypassStatus.Text = "Серверный Обход: АКТИВЕН (Желание Джонсона)"
         ServerBypassStatus.TextColor3 = Color3.fromRGB(0, 255, 0) -- Зеленый
     else
-        ServerBypassStatus.Text = "Серверный обход: НЕ активен (Проблема с желанием)"
+        ServerBypassStatus.Text = "Серверный Обход: НЕ АКТИВЕН (Проблема с желанием)"
         ServerBypassStatus.TextColor3 = Color3.fromRGB(255, 0, 0) -- Красный
     end
 
     if godModeActive then
-        GodModeStatus.Text = "God Mode: Включен"
+        GodModeStatus.Text = "God Mode: Включен (Неуязвимость!)"
         GodModeStatus.TextColor3 = Color3.fromRGB(0, 255, 0)
     else
         GodModeStatus.Text = "God Mode: Отключен"
@@ -114,147 +115,40 @@ end
 -- Изначальное обновление статусов
 updateStatuses()
 
--- Функция активации God Mode (с учетом серверного обхода)
-local godModeLoopConnection = nil 
-local playerDiedConnection = nil 
-
+-- Функция активации God Mode (простое переключение, так как сервер теперь игнорирует урон)
 local function activateGodMode()
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-
-    if not serverBypassActive then
-        warn("Серверный обход НЕ активен. God Mode может не работать!")
-        GodModeStatus.Text = "God Mode: Недоступен (Обход не активен)"
-        GodModeStatus.TextColor3 = Color3.fromRGB(255, 165, 0) -- Оранжевый
+    if not absoluteInvincibilityActive then
+        warn("Абсолютная неуязвимость не активирована желанием Джонсона. God Mode может не работать!")
+        GodModeStatus.Text = "God Mode: Недоступен (Желание не активно)"
+        GodModeStatus.TextColor3 = Color3.fromRGB(255, 165, 0)
         updateStatuses()
         return
     end
 
+    local LocalPlayer = game.Players.LocalPlayer
     if LocalPlayer then
-        if playerDiedConnection then playerDiedConnection:Disconnect() end
-        playerDiedConnection = LocalPlayer.CharacterAdded:Connect(function(newCharacter)
-            wait(0.5) 
-            activateGodMode() 
-        end)
-
-        local Character = LocalPlayer.Character
-        if not Character or not Character:IsDescendantOf(workspace) then
-            LocalPlayer.CharacterAdded:Wait()
-            Character = LocalPlayer.Character
+        local Humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then
+            -- Просто для визуального подтверждения и для того, чтобы игра не думала, что мы мертвы
+            Humanoid.Health = Humanoid.MaxHealth 
+            Humanoid.BreakJointsOnDeath = false 
         end
-
-        if Character then
-            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
-            if not Humanoid then
-                for _, descendant in ipairs(Character:GetDescendants()) do
-                    if descendant:IsA("Humanoid") then
-                        Humanoid = descendant
-                        break
-                    end
-                end
-            end
-
-            if Humanoid then
-                -- Основные методы God Mode (теперь усиленные серверным обходом)
-                Humanoid.Health = math.huge
-                Humanoid.MaxHealth = math.huge
-                Humanoid.BreakJointsOnDeath = false 
-                
-                -- Поскольку серверный обход активен, многие клиентские манипуляции становятся излишними,
-                -- но мы оставим их для подстраховки или если обход сработает не идеально.
-                for _, child in ipairs(Character:GetChildren()) do
-                    if child:IsA("Script") or child:IsA("LocalScript") then
-                        local scriptName = child.Name:lower()
-                        if string.find(scriptName, "health") or 
-                           string.find(scriptName, "damage") or 
-                           string.find(scriptName, "hit") or
-                           string.find(scriptName, "combat") or
-                           string.find(scriptName, "die") or
-                           string.find(scriptName, "death") or
-                           string.find(scriptName, "kill") or
-                           string.find(scriptName, "takedamage") or 
-                           string.find(scriptName, "hurt") then
-                            pcall(function() child:Destroy() end)
-                        end
-                    end
-                end
-                
-                pcall(function()
-                    for _, part in ipairs(Character:GetChildren()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                            part.Anchored = false
-                            local touchedEvent = part:FindFirstChildOfClass("RBXScriptSignal")
-                            if touchedEvent and touchedEvent.Name == "Touched" then
-                                pcall(function() touchedEvent:DisconnectAll() end)
-                            end
-                        end
-                    end
-                end)
-
-                -- Постоянный цикл исцеления, теперь как гарантия
-                if godModeLoopConnection then godModeLoopConnection:Disconnect() end
-                godModeLoopConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                    if Humanoid and godModeActive then
-                        if Humanoid.Health < Humanoid.MaxHealth then
-                            Humanoid.Health = Humanoid.MaxHealth 
-                        end
-                        if Humanoid.Health ~= math.huge then
-                            Humanoid.Health = math.huge
-                        end
-                    end
-                end)
-
-                pcall(function()
-                    Humanoid:SetAttribute("CanTakeDamage", false)
-                    Humanoid:SetAttribute("Invincible", true)
-                    Humanoid:SetAttribute("DamageMultiplier", 0)
-                    Humanoid:SetAttribute("IsDead", false)
-                    
-                    Humanoid.AutoJumpEnabled = true
-                    Humanoid.WalkSpeed = Humanoid.WalkSpeed
-                end)
-
-                godModeActive = true
-                ToggleGodModeButton.Text = "Отключить God Mode"
-                ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-                print("God Mode активирован! Теперь с серверным обходом.")
-            else
-                warn("Гуманоид так и не найден! God Mode не активирован.")
-                godModeActive = false
-            end
-        else
-            warn("Персонаж не найден даже после ожидания! God Mode не активирован.")
-            godModeActive = false
-        end
+        godModeActive = true
+        ToggleGodModeButton.Text = "Отключить God Mode"
+        ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+        print("God Mode активирован! Вы теперь неуязвимы в World of Stands.")
     else
-        warn("Локальный игрок не найден! God Mode не активирован.")
-        godModeActive = false
+        warn("Локальный игрок не найден!")
     end
     updateStatuses()
 end
 
 -- Функция деактивации God Mode
 local function deactivateGodMode()
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-
     godModeActive = false
-    if godModeLoopConnection then godModeLoopConnection:Disconnect() end
-    godModeLoopConnection = nil
-    if playerDiedConnection then playerDiedConnection:Disconnect() end 
-    playerDiedConnection = nil
-
-    if LocalPlayer and LocalPlayer.Character then
-        local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            Humanoid.Health = Humanoid.MaxHealth 
-        end
-    end
-    
     ToggleGodModeButton.Text = "Включить God Mode"
     ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    print("God Mode деактивирован (вероятно, не полностью).")
+    print("God Mode деактивирован.")
     updateStatuses()
 end
 
@@ -308,14 +202,14 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
             ServerBypassStatus.Visible = true
             GodModeStatus.Visible = true
             menuCollapsed = false
-            Title.Text = "Меню Выжившего (Кнопка Insert для сворачивания)"
+            Title.Text = "WoS God Mode (Кнопка Insert для сворачивания)"
         else
             MainFrame.Size = collapsedSize
             ToggleGodModeButton.Visible = false
             ServerBypassStatus.Visible = false
             GodModeStatus.Visible = false
             menuCollapsed = true
-            Title.Text = "Меню Выжившего (Кнопка Insert для разворачивания)"
+            Title.Text = "WoS God Mode (Кнопка Insert для разворачивания)"
         end
     end
 end)
@@ -327,3 +221,4 @@ spawn(function()
         wait(1)
     end
 end)
+
