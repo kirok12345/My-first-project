@@ -1,243 +1,197 @@
--- Это локальный скрипт, он должен находиться в StarterPlayerScripts или StarterGui
--- Локальные скрипты выполняются на клиенте (компьютере игрока)
-
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local RootPart = Character:WaitForChild("HumanoidRootPart")
-
--- Создаем ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "CheatMenu"
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-screenGui.ResetOnSpawn = false -- Важно: GUI не будет исчезать при смерти/возрождении игрока
-
--- Создаем основную рамку меню
-local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MenuFrame"
-mainFrame.Size = UDim2.new(0, 250, 0, 350) -- Размер 250x350 пикселей
-mainFrame.Position = UDim2.new(0.5, -125, 0.5, -175) -- Центрируем по экрану
-mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Темный фон
-mainFrame.BorderColor3 = Color3.fromRGB(50, 50, 50)
-mainFrame.BorderSizePixel = 2
-mainFrame.Active = true -- Для перетаскивания
-mainFrame.Draggable = true -- Для перетаскивания
-mainFrame.Parent = screenGui
-
--- Создаем рамку для вкладок (слева)
-local tabButtonsFrame = Instance.new("Frame")
-tabButtonsFrame.Name = "TabButtons"
-tabButtonsFrame.Size = UDim2.new(0, 80, 1, 0) -- Ширина 80, высота 100% от родителя
-tabButtonsFrame.Position = UDim2.new(0, 0, 0, 0)
-tabButtonsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Еще темнее фон
-tabButtonsFrame.BorderSizePixel = 0
-tabButtonsFrame.Parent = mainFrame
-
--- Создаем рамку для содержимого вкладок (справа)
-local tabContentFrame = Instance.new("Frame")
-tabContentFrame.Name = "TabContent"
-tabContentFrame.Size = UDim2.new(1, -80, 1, 0) -- 100% ширины минус 80 пикселей для кнопок, 100% высоты
-tabContentFrame.Position = UDim2.new(0, 80, 0, 0) -- Смещаем на ширину кнопок
-tabContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35) -- Чуть светлее фон
-tabContentFrame.BorderSizePixel = 0
-tabContentFrame.Parent = mainFrame
-
--- Функция для создания кнопки вкладки
-local function createTabButton(name, yPosition)
-    local button = Instance.new("TextButton")
-    button.Name = name .. "TabButton"
-    button.Size = UDim2.new(1, 0, 0, 40) -- Ширина 100%, высота 40 пикселей
-    button.Position = UDim2.new(0, 0, 0, yPosition)
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    button.TextColor3 = Color3.fromRGB(200, 200, 200)
-    button.Text = name
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 16
-    button.Parent = tabButtonsFrame
-    return button
-end
-
--- Функция для создания панели содержимого вкладки
-local function createTabPanel(name)
-    local panel = Instance.new("Frame")
-    panel.Name = name .. "Panel"
-    panel.Size = UDim2.new(1, 0, 1, 0)
-    panel.Position = UDim2.new(0, 0, 0, 0)
-    panel.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-    panel.BorderSizePixel = 0
-    panel.Visible = false -- Изначально невидима
-    panel.Parent = tabContentFrame
-    return panel
-end
-
--- Создаем вкладки и их панели
-local tabs = {}
-local currentActivePanel = nil
-
-local function activateTab(panel)
-    if currentActivePanel then
-        currentActivePanel.Visible = false
-    end
-    panel.Visible = true
-    currentActivePanel = panel
-end
-
--- Вкладка "Player"
-local playerTabButton = createTabButton("Player", 0)
-local playerPanel = createTabPanel("Player")
-tabs["Player"] = {button = playerTabButton, panel = playerPanel}
-
-playerTabButton.MouseButton1Click:Connect(function()
-    activateTab(playerPanel)
+-- Загружаем обход античита
+local bypassSuccess = false
+pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/Who-Is-E/Anti-Cheat-Bypass/main/Bypass.lua"))()
+    bypassSuccess = true
 end)
 
--- Создаем другие вкладки (пока пустые, для демонстрации)
-local movementTabButton = createTabButton("Movement", 40)
-local movementPanel = createTabPanel("Movement")
-tabs["Movement"] = {button = movementTabButton, panel = movementPanel}
+-- Ждем короткое время для загрузки обхода
+wait(2)
 
-movementTabButton.MouseButton1Click:Connect(function()
-    activateTab(movementPanel)
-end)
+-- Переменные состояния
+local godModeActive = false
 
-local worldTabButton = createTabButton("World", 80)
-local worldPanel = createTabPanel("World")
-tabs["World"] = {button = worldTabButton, panel = worldPanel}
+-- Создаем GUI (Graphical User Interface)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CheatMenu"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-worldTabButton.MouseButton1Click:Connect(function()
-    activateTab(worldPanel)
-end)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 200, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -75) -- По центру экрана
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 2
+MainFrame.Draggable = true -- Можно перетаскивать
+MainFrame.Parent = ScreenGui
 
--- Активируем вкладку "Player" по умолчанию
-activateTab(playerPanel)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Title.Text = "Меню Выжившего"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 20
+Title.Parent = MainFrame
 
-------------------------------------------------------------------------------------------------------------------------
--- ФУНКЦИИ ДЛЯ ВКЛАДКИ "PLAYER"
-------------------------------------------------------------------------------------------------------------------------
+local ToggleGodModeButton = Instance.new("TextButton")
+ToggleGodModeButton.Size = UDim2.new(0.8, 0, 0, 30)
+ToggleGodModeButton.Position = UDim2.new(0.1, 0, 0, 40)
+ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+ToggleGodModeButton.Text = "Включить God Mode"
+ToggleGodModeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleGodModeButton.Font = Enum.Font.SourceSans
+ToggleGodModeButton.TextSize = 16
+ToggleGodModeButton.Parent = MainFrame
 
--- Функция Fly (полёт)
-local isFlying = false
-local flySpeed = 100 -- Скорость полета, можно настроить
+local AntiCheatStatus = Instance.new("TextLabel")
+AntiCheatStatus.Size = UDim2.new(0.9, 0, 0, 20)
+AntiCheatStatus.Position = UDim2.new(0.05, 0, 0, 80)
+AntiCheatStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+AntiCheatStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiCheatStatus.Font = Enum.Font.SourceSans
+AntiCheatStatus.TextSize = 14
+AntiCheatStatus.TextXAlignment = Enum.TextXAlignment.Left
+AntiCheatStatus.Parent = MainFrame
 
-local function toggleFly()
-    if not Character or not Humanoid or not RootPart then
-        warn("Character components not found for Fly function.")
-        return
-    end
+local GodModeStatus = Instance.new("TextLabel")
+GodModeStatus.Size = UDim2.new(0.9, 0, 0, 20)
+GodModeStatus.Position = UDim2.new(0.05, 0, 0, 105)
+GodModeStatus.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+GodModeStatus.TextColor3 = Color3.fromRGB(255, 255, 255)
+GodModeStatus.Font = Enum.Font.SourceSans
+GodModeStatus.TextSize = 14
+GodModeStatus.TextXAlignment = Enum.TextXAlignment.Left
+GodModeStatus.Parent = MainFrame
 
-    isFlying = not isFlying
-
-    if isFlying then
-        -- Отключаем гравитацию для полета
-        Humanoid.Sit = true -- Сажаем гуманоида, чтобы отключить некоторые физические взаимодействия
-        RootPart.Anchored = true -- Закрепляем RootPart
-        Humanoid.PlatformStand = true -- Дополнительно для лучшего контроля
-        
-        -- Создаем или получаем BodyVelocity для управления полетом
-        local bodyVel = Instance.new("BodyVelocity")
-        bodyVel.MaxForce = Vector3.new(math.huge, math.huge, math.huge) -- Максимальная сила
-        bodyVel.Parent = RootPart
-
-        -- Отслеживаем ввод для управления полетом
-        local connection = nil
-        connection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-            if gameProcessedEvent then return end
-
-            local currentVel = Vector3.new(0, 0, 0)
-            local camera = workspace.CurrentCamera
-            local cameraCFrame = camera.CFrame
-
-            if input.KeyCode == Enum.KeyCode.W then
-                currentVel = currentVel + cameraCFrame.LookVector * flySpeed
-            elseif input.KeyCode == Enum.KeyCode.S then
-                currentVel = currentVel - cameraCFrame.LookVector * flySpeed
-            elseif input.KeyCode == Enum.KeyCode.A then
-                currentVel = currentVel - cameraCFrame.RightVector * flySpeed
-            elseif input.KeyCode == Enum.KeyCode.D then
-                currentVel = currentVel + cameraCFrame.RightVector * flySpeed
-            elseif input.KeyCode == Enum.KeyCode.Space then
-                currentVel = currentVel + Vector3.new(0, flySpeed, 0)
-            elseif input.KeyCode == Enum.KeyCode.Q then
-                currentVel = currentVel - Vector3.new(0, flySpeed, 0)
-            end
-            bodyVel.Velocity = currentVel
-        end)
-
-        -- Отключаем отслеживание ввода, когда полёт выключается
-        RootPart.AncestryChanged:Connect(function()
-            if not RootPart.Parent and connection then
-                connection:Disconnect()
-            end
-        })
-
-        -- Обновляем текст кнопки
-        flyButton.Text = "Fly: ON"
-        flyButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Зеленый
+-- Функция для обновления статусов
+local function updateStatuses()
+    if bypassSuccess then
+        AntiCheatStatus.Text = "Античит: Обход активен"
+        AntiCheatStatus.TextColor3 = Color3.fromRGB(0, 255, 0) -- Зеленый
     else
-        -- Возвращаем нормальное состояние
-        if RootPart:FindFirstChildOfClass("BodyVelocity") then
-            RootPart:FindFirstChildOfClass("BodyVelocity"):Destroy()
-        end
-        Humanoid.Sit = false
-        RootPart.Anchored = false
-        Humanoid.PlatformStand = false
+        AntiCheatStatus.Text = "Античит: Обход НЕ активен"
+        AntiCheatStatus.TextColor3 = Color3.fromRGB(255, 0, 0) -- Красный
+    end
 
-        -- Обновляем текст кнопки
-        flyButton.Text = "Fly: OFF"
-        flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красный
+    if godModeActive then
+        GodModeStatus.Text = "God Mode: Включен"
+        GodModeStatus.TextColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        GodModeStatus.Text = "God Mode: Отключен"
+        GodModeStatus.TextColor3 = Color3.fromRGB(255, 0, 0)
     end
 end
 
--- Кнопка Fly
-local flyButton = Instance.new("TextButton")
-flyButton.Name = "FlyToggle"
-flyButton.Size = UDim2.new(0.9, 0, 0, 35) -- Ширина 90%, высота 35 пикселей
-flyButton.Position = UDim2.new(0.05, 0, 0, 10) -- Отступ 5% от левого края, 10 пикселей от верха панели
-flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красный (выключен)
-flyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-flyButton.Text = "Fly: OFF"
-flyButton.Font = Enum.Font.SourceSansBold
-flyButton.TextSize = 18
-flyButton.Parent = playerPanel
+-- Изначальное обновление статусов
+updateStatuses()
 
-flyButton.MouseButton1Click:Connect(toggleFly)
+-- Функция активации God Mode
+local function activateGodMode()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    if LocalPlayer then
+        local Character = LocalPlayer.Character
+        if not Character or not Character:IsDescendantOf(workspace) then
+            LocalPlayer.CharacterAdded:Wait()
+            Character = LocalPlayer.Character
+        end
+
+        if Character then
+            local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+            if not Humanoid then
+                for _, descendant in ipairs(Character:GetDescendants()) do
+                    if descendant:IsA("Humanoid") then
+                        Humanoid = descendant
+                        break
+                    end
+                end
+            end
+
+            if Humanoid then
+                Humanoid.Health = math.huge
+                Humanoid.MaxHealth = math.huge
+
+                for _, child in ipairs(Character:GetChildren()) do
+                    if child:IsA("Script") and (string.find(child.Name:lower(), "health") or string.find(child.Name:lower(), "damage")) then
+                        pcall(function() child:Destroy() end)
+                    end
+                end
+                
+                if Humanoid:FindFirstChild("TakeDamage") then
+                    pcall(function() Humanoid.TakeDamage:DisconnectAll() end)
+                end
+
+                Humanoid.BreakJointsOnDeath = false 
+                godModeActive = true
+                ToggleGodModeButton.Text = "Отключить God Mode"
+                ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Красная кнопка
+                print("God Mode активирован!")
+            else
+                warn("Гуманоид так и не найден!")
+                godModeActive = false
+            end
+        else
+            warn("Персонаж не найден даже после ожидания!")
+            godModeActive = false
+        end
+    else
+        warn("Локальный игрок не найден!")
+        godModeActive = false
+    end
+    updateStatuses()
+end
+
+-- Функция деактивации God Mode (попытка, не всегда полностью восстановима)
+local function deactivateGodMode()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    if LocalPlayer and LocalPlayer.Character then
+        local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then
+            Humanoid.Health = Humanoid.MaxHealth -- Возвращаем к нормальному максимальному здоровью
+            -- Восстановить скрипты урона сложнее, их нужно было бы сохранять.
+            -- Поэтому полное отключение "God Mode" может быть неполным без перезапуска игры.
+        end
+    end
+    godModeActive = false
+    ToggleGodModeButton.Text = "Включить God Mode"
+    ToggleGodModeButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Зеленая кнопка
+    print("God Mode деактивирован (возможно, не полностью).")
+    updateStatuses()
+end
 
 
--- Кнопка Teleport to me (телепортация к себе)
-local teleportButton = Instance.new("TextButton")
-teleportButton.Name = "TeleportToMe"
-teleportButton.Size = UDim2.new(0.9, 0, 0, 35)
-teleportButton.Position = UDim2.new(0.05, 0, 0, 55) -- Ниже кнопки Fly
-teleportButton.BackgroundColor3 = Color3.fromRGB(0, 100, 150) -- Синий
-teleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-teleportButton.Text = "Teleport to me"
-teleportButton.Font = Enum.Font.SourceSansBold
-teleportButton.TextSize = 18
-teleportButton.Parent = playerPanel
-
-teleportButton.MouseButton1Click:Connect(function()
-    -- Получаем текущую позицию RootPart игрока
-    local currentPos = RootPart.CFrame.Position
-    -- Телепортируем игрока на эту же позицию, но чуть выше (чтобы не застрять в полу)
-    RootPart.CFrame = CFrame.new(currentPos.X, currentPos.Y + 5, currentPos.Z)
-    -- Сбрасываем любую скорость
-    RootPart.Velocity = Vector3.new(0,0,0)
-    RootPart.RotVelocity = Vector3.new(0,0,0)
-    print("Teleported player to self's current position (slightly above).") -- Для отладки в окне Output
-end)
-
-
--- Обработка возрождения персонажа для функций, зависящих от него
-LocalPlayer.CharacterAdded:Connect(function(char)
-    Character = char
-    Humanoid = Character:WaitForChild("Humanoid")
-    RootPart = Character:WaitForChild("HumanoidRootPart")
-    -- Если был включен полет, выключаем его при возрождении, чтобы избежать багов
-    if isFlying then
-        isFlying = false
-        flyButton.Text = "Fly: OFF"
-        flyButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+-- Обработчик нажатия кнопки
+ToggleGodModeButton.MouseButton1Click:Connect(function()
+    if godModeActive then
+        deactivateGodMode()
+    else
+        activateGodMode()
     end
 end)
+
+-- Обновляем статусы каждую секунду на случай внешних изменений (например, респаун персонажа)
+-- Это поможет поддерживать актуальность информации
+spawn(function()
+    while true do
+        updateStatuses()
+        wait(1)
+    end
+end)
+
+-- Инструкции по использованию:
+-- 1. Как и всегда, скопируй весь этот код.
+-- 2. Вставь его в свой исполнитель скриптов для Roblox.
+-- 3. Запусти скрипт.
+-- 4. На экране должен появиться черный прямоугольник – это наше меню. Ты можешь его перетаскивать.
+-- 5. В меню будут строки "Античит" и "God Mode", которые покажут их статус (зеленый - работает, красный - нет).
+-- 6. Нажми кнопку "Включить God Mode", чтобы активировать или деактивировать его.
+
+-- Помни: Roblox постоянно пытается обнаружить и заблокировать такие скрипты.
+-- Если что-то не работает, это означает, что им, возможно, удалось обновить свою защиту.
+-- В таких случаях, единственный выход - искать новые обходы античита или новые методы для God Mode.
+-- Это бесконечная гонка.
